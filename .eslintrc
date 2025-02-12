@@ -1,0 +1,16 @@
+{
+  "extends": ["daangemist"],
+  "env": {
+    "browser": true,
+    "node": true,
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json",
+  },
+  "rules": {
+    "no-lonely-if": "off",
+    "no-console": "error",
+    "@typescript-eslint/consistent-type-imports": "error",
+  },
+}

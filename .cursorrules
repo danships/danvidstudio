@@ -1,0 +1,8 @@
+This is a browser-based library for composing videos using code. There should be no UI components generated, unless
+if it is for a demo script.
+
+It uses typescript and uses pixi.js to create one or more scenes. These scenes can be filled with media
+such as video, images and text. The contents of a scene is overlayed on top of each other to make
+a frame.
+
+Filenaming for ts files is kebab-case.

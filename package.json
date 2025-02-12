@@ -1,0 +1,38 @@
+{
+  "name": "danvidstudio",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "out/danvidstudio.js",
+  "types": "out/index.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "concurrently --kill-others-on-fail \"npm:lint:*\"",
+    "lint:prettier": "prettier --check --log-level=warn src",
+    "lint:tsc": "tsc --noEmit",
+    "lint:eslint": "eslint --ext=js,jsx,ts,tsx --max-warnings=0 src",
+    "format": "prettier --write src && eslint --ext=js,jsx,ts,tsx --fix src"
+  },
+  "prettier": "eslint-config-daangemist/.prettierrc",
+  "dependencies": {
+    "pixi.js": "^8.7.3"
+  },
+  "devDependencies": {
+    "@tsconfig/strictest": "^2.0.5",
+    "@types/node": "^20.11.17",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^8.57.1",
+    "eslint-config-daangemist": "^1.2.2",
+    "eslint-import-resolver-typescript": "^3.7.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-only-warn": "^1.1.0",
+    "eslint-plugin-unicorn": "^56.0.1",
+    "prettier": "^3.5.0",
+    "typescript": "^5.7.3",
+    "vite": "^5.1.1",
+    "vite-plugin-dts": "^3.7.2"
+  }
+}
