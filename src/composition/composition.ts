@@ -125,6 +125,17 @@ export class Composition {
     logger.info('Seeking to:', time);
     this.playStatus.currentTime = time;
     this.onUpdateTime(this.playStatus.currentTime);
+
+    // Activate that is active at that time
+    let sceneTimeBefore = 0;
+    for (const scene of this.scenes) {
+      if (time >= sceneTimeBefore && time <= sceneTimeBefore + scene.duration) {
+        scene.setVisible(true);
+      } else {
+        scene.setVisible(false);
+      }
+      sceneTimeBefore += scene.duration;
+    }
   }
 
   public onTimeUpdate(listener: (currentTime: number, totalDuration: number) => void) {

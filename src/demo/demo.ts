@@ -3,6 +3,77 @@ import { ImageClip } from '../clips/image-clip';
 import { Composition } from '../index';
 import { LogLevel } from '../utils/logger';
 import { ImageSource } from '../sources/image-source';
+import { Scene } from '../composition/scene';
+
+async function createSingleImageScene(composition: Composition, clipperImage: ImageSource): Promise<Scene> {
+  const scene = composition.addScene({ duration: 2 });
+  const track = scene.addTrack({});
+
+  const imageClip = new ImageClip({
+    source: clipperImage,
+    start: 0,
+    end: 10,
+  });
+
+  track.addClip(imageClip);
+  return scene;
+}
+
+async function createSplitImageScene(composition: Composition, clipperImage: ImageSource): Promise<Scene> {
+  const splitScene = composition.addScene({ duration: 3 });
+  const splitTrack = splitScene.addTrack({});
+
+  const firstClip = new ImageClip({
+    source: clipperImage,
+    start: 0,
+    end: 2,
+    top: 0,
+    left: 0,
+    width: 320,
+    height: 240,
+  });
+  const secondClip = new ImageClip({
+    source: clipperImage,
+    start: 0,
+    end: 2,
+    top: 240,
+    left: 320,
+    width: 320,
+    height: 240,
+  });
+  splitTrack.addClip(firstClip);
+  splitTrack.addClip(secondClip);
+  return splitScene;
+}
+
+async function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSource): Promise<Scene> {
+  const autoSizeScene = composition.addScene({ duration: 1 });
+  const autoSizeAndCropTrack = autoSizeScene.addTrack({});
+
+  const autoSizeClip = new ImageClip({
+    source: gridImage,
+    start: 0,
+    end: 1,
+    width: 640,
+    height: 480,
+  });
+
+  autoSizeAndCropTrack.addClip(autoSizeClip);
+
+  const croppedClip = new ImageClip({
+    source: gridImage,
+    start: 0,
+    end: 1,
+    crop: { x: 512, y: 240, width: 640, height: 240 },
+    left: 20,
+    top: 100,
+    width: 320,
+  });
+
+  autoSizeAndCropTrack.addClip(croppedClip);
+  return autoSizeScene;
+}
+
 async function initDemo() {
   // Create progress container
   const progressContainer = document.createElement('div');
@@ -74,47 +145,14 @@ async function initDemo() {
   const composition = new Composition({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
   await composition.ready;
 
-  // Create a scene
-  const scene = composition.addScene({ duration: 2 });
-  const track = scene.addTrack({});
-
+  // Load the image source
   const clipperImage = await ImageSource.create('/clipper.jpg');
+  const gridImage = await ImageSource.create('/grid.jpg');
 
-  const imageClip = new ImageClip({
-    source: clipperImage,
-    start: 0,
-    end: 10,
-    top: 0,
-    left: 0,
-    width: 1024,
-    height: 1024,
-  });
-
-  track.addClip(imageClip);
-
-  const splitScene = composition.addScene({ duration: 3 });
-  const splitTrack = splitScene.addTrack({});
-
-  const firstClip = new ImageClip({
-    source: clipperImage,
-    start: 0,
-    end: 2,
-    top: 0,
-    left: 0,
-    width: 320,
-    height: 240,
-  });
-  const secondClip = new ImageClip({
-    source: clipperImage,
-    start: 0,
-    end: 2,
-    top: 240,
-    left: 320,
-    width: 320,
-    height: 240,
-  });
-  splitTrack.addClip(firstClip);
-  splitTrack.addClip(secondClip);
+  // Create scenes
+  //await createSingleImageScene(composition, clipperImage);
+  //await createSplitImageScene(composition, clipperImage);
+  await createAutoSizeAndCropScene(composition, gridImage);
 
   // Subscribe to time updates
   composition.onTimeUpdate((currentTime, totalDuration) => {
