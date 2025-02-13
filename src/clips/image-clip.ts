@@ -1,9 +1,10 @@
 import { Assets, Container, Sprite } from 'pixi.js';
 import { VisualClip, type VisualOptions } from '../base/visual-clip';
+import type { ImageSource } from '../sources/image-source';
 import { logger } from '../utils/logger';
 
 export type Options = VisualOptions & {
-  src: string;
+  source: ImageSource;
 };
 
 export class ImageClip extends VisualClip {
@@ -11,6 +12,15 @@ export class ImageClip extends VisualClip {
   private sprite: Sprite | null = null;
 
   public loaded: boolean = false;
+
+  private async blobToDataURL(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
 
   constructor(options: Options) {
     super({
@@ -28,7 +38,8 @@ export class ImageClip extends VisualClip {
     this.container = container;
 
     (async () => {
-      const texture = await Assets.load(options.src);
+      const dataUrl = await this.blobToDataURL(options.source.blob);
+      const texture = await Assets.load(dataUrl);
 
       this.sprite = Sprite.from(texture);
       this.sprite.setSize(this.width, this.height);

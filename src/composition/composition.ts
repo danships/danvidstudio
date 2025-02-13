@@ -95,6 +95,7 @@ export class Composition {
       },
       options
     );
+    scene.setVisible(false);
     this.scenes.push(scene);
     logger.info('Added scene', scene.id);
     return scene;
@@ -162,8 +163,9 @@ export class Composition {
     // Using the activeSceneIndex, determine how many time already elapsed before the current scene
     const sceneTimeElapsed =
       this.playStatus.activeSceneIndex > 0
-        ? getDurationOfScenes(this.scenes.slice(0, this.playStatus.activeSceneIndex - 1))
+        ? getDurationOfScenes(this.scenes.slice(0, this.playStatus.activeSceneIndex))
         : 0;
+
     if (
       this.playStatus.currentTime >
       sceneTimeElapsed + (this.scenes[this.playStatus.activeSceneIndex]?.duration ?? 0)
@@ -174,10 +176,13 @@ export class Composition {
         this.pause();
         return;
       }
-      logger.debug('Reached end of scene, moving to next scene');
+      logger.debug('Reached end of scene, moving to next scene', {
+        time: this.playStatus.currentTime,
+        nextSceneIndex: this.playStatus.activeSceneIndex,
+        nextSceneDuration: this.scenes[this.playStatus.activeSceneIndex]?.duration,
+      });
 
       this.scenes[this.playStatus.activeSceneIndex - 1]?.setVisible(false); // out with the old
-      this.playStatus.activeSceneIndex = this.playStatus.activeSceneIndex + 1;
       this.scenes[this.playStatus.activeSceneIndex]?.setVisible(true); // in with the new
     }
 

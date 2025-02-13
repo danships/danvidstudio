@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
-import { ImageClip } from '../clips/image';
+import { ImageClip } from '../clips/image-clip';
 import { Composition } from '../index';
 import { LogLevel } from '../utils/logger';
-
+import { ImageSource } from '../sources/image-source';
 async function initDemo() {
   // Create progress container
   const progressContainer = document.createElement('div');
@@ -75,20 +75,46 @@ async function initDemo() {
   await composition.ready;
 
   // Create a scene
-  const scene = composition.addScene({ duration: 5 });
+  const scene = composition.addScene({ duration: 2 });
   const track = scene.addTrack({});
 
+  const clipperImage = await ImageSource.create('/clipper.jpg');
+
   const imageClip = new ImageClip({
-    src: '/clipper.jpg',
+    source: clipperImage,
     start: 0,
     end: 10,
     top: 0,
     left: 0,
-    width: 1280,
-    height: 720,
+    width: 1024,
+    height: 1024,
   });
 
   track.addClip(imageClip);
+
+  const splitScene = composition.addScene({ duration: 3 });
+  const splitTrack = splitScene.addTrack({});
+
+  const firstClip = new ImageClip({
+    source: clipperImage,
+    start: 0,
+    end: 2,
+    top: 0,
+    left: 0,
+    width: 320,
+    height: 240,
+  });
+  const secondClip = new ImageClip({
+    source: clipperImage,
+    start: 0,
+    end: 2,
+    top: 240,
+    left: 320,
+    width: 320,
+    height: 240,
+  });
+  splitTrack.addClip(firstClip);
+  splitTrack.addClip(secondClip);
 
   // Subscribe to time updates
   composition.onTimeUpdate((currentTime, totalDuration) => {
@@ -170,4 +196,6 @@ initDemo().catch((error: unknown) => {
   errorDiv.style.margin = '20px';
   errorDiv.textContent = `Failed to initialize demo: ${errorMessage}`;
   document.body.append(errorDiv);
+
+  throw error;
 });
