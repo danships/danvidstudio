@@ -4,8 +4,10 @@ import { Composition } from '../index';
 import { LogLevel } from '../utils/logger';
 import { ImageSource } from '../sources/image-source';
 import { Scene } from '../composition/scene';
+import { VideoSource } from '../sources/video-source';
+import { VideoClip } from '../clips/video-clip';
 
-async function createSingleImageScene(composition: Composition, clipperImage: ImageSource): Promise<Scene> {
+function createSingleImageScene(composition: Composition, clipperImage: ImageSource): Scene {
   const scene = composition.addScene({ duration: 2 });
   const track = scene.addTrack({});
 
@@ -19,7 +21,7 @@ async function createSingleImageScene(composition: Composition, clipperImage: Im
   return scene;
 }
 
-async function createSplitImageScene(composition: Composition, clipperImage: ImageSource): Promise<Scene> {
+function createSplitImageScene(composition: Composition, clipperImage: ImageSource): Scene {
   const splitScene = composition.addScene({ duration: 3 });
   const splitTrack = splitScene.addTrack({});
 
@@ -46,7 +48,7 @@ async function createSplitImageScene(composition: Composition, clipperImage: Ima
   return splitScene;
 }
 
-async function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSource): Promise<Scene> {
+function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSource): Scene {
   const autoSizeScene = composition.addScene({ duration: 1 });
   const autoSizeAndCropTrack = autoSizeScene.addTrack({});
 
@@ -72,6 +74,23 @@ async function createAutoSizeAndCropScene(composition: Composition, gridImage: I
 
   autoSizeAndCropTrack.addClip(croppedClip);
   return autoSizeScene;
+}
+
+function createPlainVideoScene(composition: Composition, video: VideoSource): Scene {
+  const plainVideoScene = composition.addScene({ duration: 10 });
+  const plainVideoTrack = plainVideoScene.addTrack({});
+
+  const plainVideoClip = new VideoClip({
+    source: video,
+    start: 0,
+    end: 10,
+    width: 640,
+    speed: 2,
+  });
+
+  plainVideoTrack.addClip(plainVideoClip);
+
+  return plainVideoScene;
 }
 
 async function initDemo() {
@@ -148,11 +167,15 @@ async function initDemo() {
   // Load the image source
   const clipperImage = await ImageSource.create('/clipper.jpg');
   const gridImage = await ImageSource.create('/grid.jpg');
+  const bunnySource = await VideoSource.create(
+    'https://diffusion-studio-public.s3.eu-central-1.amazonaws.com/videos/big_buck_bunny_1080p_30fps.mp4'
+  );
 
   // Create scenes
   //await createSingleImageScene(composition, clipperImage);
   //await createSplitImageScene(composition, clipperImage);
-  await createAutoSizeAndCropScene(composition, gridImage);
+  //createAutoSizeAndCropScene(composition, gridImage);
+  createPlainVideoScene(composition, bunnySource);
 
   // Subscribe to time updates
   composition.onTimeUpdate((currentTime, totalDuration) => {
@@ -166,6 +189,7 @@ async function initDemo() {
   if (playerDiv) {
     composition.attachPlayer(playerDiv as HTMLDivElement);
   }
+  composition.play();
 
   // Add event listeners
   resetButton.addEventListener('click', () => {
