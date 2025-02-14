@@ -120,13 +120,21 @@ export class VideoClip extends VisualClip {
     );
   }
 
-  private createCroppedTexture(rect: Rectangle): Texture {
-    if (!this.videoSource) {
-      throw new Error('Video source not initialized');
-    }
+  private createCroppedTexture(baseTexture: Texture, rect: Rectangle): Texture {
+    // Ensure crop rectangle doesn't exceed texture bounds
+    const sourceWidth = baseTexture.source.width;
+    const sourceHeight = baseTexture.source.height;
+
+    const safeRect = new Rectangle(
+      Math.max(0, Math.min(rect.x, sourceWidth)),
+      Math.max(0, Math.min(rect.y, sourceHeight)),
+      Math.min(rect.width, sourceWidth - rect.x),
+      Math.min(rect.height, sourceHeight - rect.y)
+    );
+
     return new Texture({
-      source: this.videoSource,
-      frame: new Rectangle(rect.x, rect.y, rect.width, rect.height),
+      source: baseTexture.source,
+      frame: safeRect,
     });
   }
 
@@ -136,14 +144,30 @@ export class VideoClip extends VisualClip {
       return this;
     }
 
+    // Validate crop dimensions
+    if (width <= 0 || height <= 0) {
+      logger.warn('Invalid crop dimensions: width and height must be positive');
+      return this;
+    }
+
     this.cropRectangle = new Rectangle(x, y, width, height);
-    const croppedTexture = this.createCroppedTexture(this.cropRectangle);
 
     if (this.texture) {
+      const croppedTexture = this.createCroppedTexture(this.texture, this.cropRectangle);
       this.texture.destroy();
+      this.texture = croppedTexture;
+      this.sprite.texture = this.texture;
+
+      // Update sprite size to match requested dimensions while maintaining aspect ratio
+      if (this.width && this.height) {
+        this.sprite.width = this.width;
+        this.sprite.height = this.height;
+      } else {
+        // If no dimensions specified, use crop dimensions
+        this.sprite.width = width;
+        this.sprite.height = height;
+      }
     }
-    this.texture = croppedTexture;
-    this.sprite.texture = this.texture;
     return this;
   }
 
@@ -153,12 +177,23 @@ export class VideoClip extends VisualClip {
       return this;
     }
 
-    if (this.texture) {
-      this.texture.destroy();
-    }
-    this.texture = new Texture(this.videoSource);
-    this.sprite.texture = this.texture;
     this.cropRectangle = null;
+    if (this.texture) {
+      const fullTexture = new Texture(this.videoSource);
+      this.texture.destroy();
+      this.texture = fullTexture;
+      this.sprite.texture = this.texture;
+
+      // Reset sprite size to requested dimensions
+      if (this.width && this.height) {
+        this.sprite.width = this.width;
+        this.sprite.height = this.height;
+      } else {
+        // If no dimensions specified, use video source dimensions
+        this.sprite.width = this.videoSource.width;
+        this.sprite.height = this.videoSource.height;
+      }
+    }
     return this;
   }
 
@@ -217,7 +252,7 @@ export class VideoClip extends VisualClip {
               'seeked',
               () => {
                 if (this.videoSource) {
-                  const frameTexture = new Texture(
+                  const baseTexture = new Texture(
                     new PixiVideoSource({
                       resource: temporaryVideo,
                       autoPlay: false,
@@ -227,17 +262,11 @@ export class VideoClip extends VisualClip {
                   );
 
                   if (this.cropRectangle) {
-                    const croppedTexture = this.createCroppedTexture(
-                      new Rectangle(
-                        this.cropRectangle.x,
-                        this.cropRectangle.y,
-                        this.cropRectangle.width,
-                        this.cropRectangle.height
-                      )
-                    );
+                    const croppedTexture = this.createCroppedTexture(baseTexture, this.cropRectangle);
+                    baseTexture.destroy();
                     this.frameBuffer.set(frameTime, croppedTexture);
                   } else {
-                    this.frameBuffer.set(frameTime, frameTexture);
+                    this.frameBuffer.set(frameTime, baseTexture);
                   }
                 }
                 temporaryVideo.remove();

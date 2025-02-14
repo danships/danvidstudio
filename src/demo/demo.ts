@@ -86,7 +86,8 @@ function createPlainVideoScene(composition: Composition, video: VideoSource): Sc
     end: 10,
     width: 640,
     // speed: 2,
-    range: { start: 7, end: 15 },
+    // range: { start: 7, end: 15 },
+    crop: { x: 720, y: 720, width: 640, height: 480 },
   });
 
   plainVideoTrack.addClip(plainVideoClip);
