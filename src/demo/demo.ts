@@ -77,7 +77,7 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
 }
 
 function createPlainVideoScene(composition: Composition, video: VideoSource): Scene {
-  const plainVideoScene = composition.addScene({ duration: 10 });
+  const plainVideoScene = composition.addScene({ duration: 11 });
   const plainVideoTrack = plainVideoScene.addTrack({});
 
   const plainVideoClip = new VideoClip({
@@ -85,7 +85,8 @@ function createPlainVideoScene(composition: Composition, video: VideoSource): Sc
     start: 0,
     end: 10,
     width: 640,
-    speed: 2,
+    // speed: 2,
+    range: { start: 7, end: 15 },
   });
 
   plainVideoTrack.addClip(plainVideoClip);

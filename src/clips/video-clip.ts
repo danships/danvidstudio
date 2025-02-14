@@ -1,11 +1,15 @@
-import { Container, Rectangle, Sprite, Texture, SCALE_MODES, VideoSource as PixiVideoSource } from 'pixi.js';
+import { Container, VideoSource as PixiVideoSource, Rectangle, Sprite, Texture } from 'pixi.js';
 import { VisualClip, type VisualOptions } from '../base/visual-clip';
-import { VideoSource } from '../sources/video-source';
+import type { VideoSource } from '../sources/video-source';
 import { logger } from '../utils/logger';
 
 export type Options = VisualOptions & {
   source: VideoSource;
   speed?: number;
+  range?: {
+    start: number; // Start time in the source video (in seconds)
+    end: number; // End time in the source video (in seconds)
+  };
   crop?: {
     x: number;
     y: number;
@@ -24,6 +28,8 @@ export class VideoClip extends VisualClip {
   private lastUpdateTime: number = -1;
   private pendingSeek: boolean = false;
   private speed: number = 1;
+  private range: { start: number; end: number };
+
   private seekedListener = () => {
     if (this.pendingSeek) {
       this.pendingSeek = false;
@@ -52,6 +58,17 @@ export class VideoClip extends VisualClip {
 
     this.speed = options.speed ?? 1;
     this.videoElement = options.source.getVideoElement();
+
+    // Initialize and validate source range
+    this.range = {
+      start: Math.max(0, options.range?.start ?? 0),
+      end: Math.min(options.source.duration, options.range?.end ?? options.source.duration),
+    };
+
+    if (this.range.start >= this.range.end) {
+      throw new Error('Invalid source range: start must be less than end');
+    }
+
     // Prevent video from actually playing since we're manually seeking
     this.videoElement.autoplay = false;
     this.videoElement.muted = true;
@@ -74,23 +91,33 @@ export class VideoClip extends VisualClip {
       updateFPS: 0, // Update every frame
     });
 
-    // Initialize sprite with video texture
-    this.texture = new Texture(this.videoSource);
-    this.sprite = new Sprite(this.texture);
-    this.sprite.width = this.width;
-    this.sprite.height = this.height;
-    this.sprite.position.set(this.left, this.top);
-    this.container.addChild(this.sprite);
+    // Set initial position to range start
+    this.videoElement.currentTime = this.range.start;
 
-    // Apply initial crop if provided
-    if (options.crop) {
-      this.setCrop(options.crop.x, options.crop.y, options.crop.width, options.crop.height);
-    }
+    // Initialize sprite with video texture after seeking to correct position
+    this.videoElement.addEventListener(
+      'seeked',
+      () => {
+        // Initialize sprite with video texture
+        this.texture = new Texture(this.videoSource!);
+        this.sprite = new Sprite(this.texture);
+        this.sprite.width = this.width;
+        this.sprite.height = this.height;
+        this.sprite.position.set(this.left, this.top);
+        this.container.addChild(this.sprite);
 
-    // Start preloading frames
-    void this.preloadFrames(0);
+        // Apply initial crop if provided
+        if (options.crop) {
+          this.setCrop(options.crop.x, options.crop.y, options.crop.width, options.crop.height);
+        }
 
-    this.ready = true;
+        // Start preloading frames
+        void this.preloadFrames(0);
+
+        this.ready = true;
+      },
+      { once: true }
+    );
   }
 
   private createCroppedTexture(rect: Rectangle): Texture {
@@ -158,6 +185,14 @@ export class VideoClip extends VisualClip {
     return this.container;
   }
 
+  private mapToSourceTime(clipTime: number): number {
+    // clipTime is relative to the clip's start time (0 = clip start)
+    // We need to map this to the video's range
+    const rangeDuration = this.range.end - this.range.start;
+    const normalizedTime = (clipTime * this.speed) % rangeDuration;
+    return this.range.start + (normalizedTime >= 0 ? normalizedTime : rangeDuration + normalizedTime);
+  }
+
   private async preloadFrames(startTime: number): Promise<void> {
     if (this.isPreloading) return;
     this.isPreloading = true;
@@ -165,14 +200,17 @@ export class VideoClip extends VisualClip {
     try {
       for (let iter = 0; iter < this.bufferSize; iter++) {
         const frameTime = startTime + (iter * this.preloadInterval) / 1000;
-        if (frameTime > this.end - this.start) {
+        const clipDuration = this.end - this.start;
+
+        // Stop preloading if we're beyond the clip duration
+        if (frameTime > clipDuration) {
           break;
         }
 
         if (!this.frameBuffer.has(frameTime)) {
-          // Create a temporary video element for frame extraction
           const temporaryVideo = this.videoElement.cloneNode() as HTMLVideoElement;
-          temporaryVideo.currentTime = frameTime * this.speed;
+          const sourceTime = this.mapToSourceTime(frameTime);
+          temporaryVideo.currentTime = sourceTime;
 
           await new Promise<void>((resolve) => {
             temporaryVideo.addEventListener(
@@ -225,9 +263,6 @@ export class VideoClip extends VisualClip {
     if (clipTime >= 0 && clipTime <= this.end - this.start) {
       this.container.visible = true;
 
-      // Apply speed factor to the video time
-      const adjustedClipTime = clipTime * this.speed;
-
       // Try to use preloaded frame
       const nearestFrame = this.findNearestFrame(clipTime);
       if (nearestFrame !== null && this.frameBuffer.has(nearestFrame)) {
@@ -235,13 +270,12 @@ export class VideoClip extends VisualClip {
         if (this.sprite.texture !== frameTexture) {
           this.sprite.texture = frameTexture;
         }
-      } else {
-        // Fall back to regular seeking if frame not available
-        if (this.lastUpdateTime !== adjustedClipTime && !this.pendingSeek) {
-          this.pendingSeek = true;
-          this.videoElement.currentTime = adjustedClipTime;
-          this.lastUpdateTime = adjustedClipTime;
-        }
+      } else if (this.lastUpdateTime !== clipTime && !this.pendingSeek) {
+        this.pendingSeek = true;
+        // Map clip time to source video time
+        const sourceTime = this.mapToSourceTime(clipTime);
+        this.videoElement.currentTime = sourceTime;
+        this.lastUpdateTime = clipTime;
       }
 
       // Trigger preloading of next frames
