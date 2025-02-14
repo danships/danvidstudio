@@ -9,7 +9,7 @@
     "project": "./tsconfig.json",
   },
   "rules": {
-    "no-lonely-if": "off",
+    "no-lonely-if": "error",
     "no-console": "error",
     "@typescript-eslint/consistent-type-imports": "error",
   },

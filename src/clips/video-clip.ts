@@ -24,6 +24,17 @@ export class VideoClip extends VisualClip {
   private lastUpdateTime: number = -1;
   private pendingSeek: boolean = false;
   private speed: number = 1;
+  private seekedListener = () => {
+    if (this.pendingSeek) {
+      this.pendingSeek = false;
+    }
+  };
+
+  // Frame preloading properties
+  private frameBuffer: Map<number, Texture> = new Map();
+  private bufferSize: number = 10; // Number of frames to preload
+  private isPreloading: boolean = false;
+  private preloadInterval: number = 1000 / 30; // Preload interval in ms (30fps)
 
   public ready: boolean = false;
 
@@ -46,11 +57,7 @@ export class VideoClip extends VisualClip {
     this.videoElement.muted = true;
 
     // Listen for seeked event to know when we can capture the frame
-    this.videoElement.addEventListener('seeked', () => {
-      if (this.pendingSeek) {
-        this.pendingSeek = false;
-      }
-    });
+    this.videoElement.addEventListener('seeked', this.seekedListener);
 
     if (!options.width) {
       this.width = options.crop ? options.crop.width : options.source.width;
@@ -79,6 +86,9 @@ export class VideoClip extends VisualClip {
     if (options.crop) {
       this.setCrop(options.crop.x, options.crop.y, options.crop.width, options.crop.height);
     }
+
+    // Start preloading frames
+    void this.preloadFrames(0);
 
     this.ready = true;
   }
@@ -148,6 +158,63 @@ export class VideoClip extends VisualClip {
     return this.container;
   }
 
+  private async preloadFrames(startTime: number): Promise<void> {
+    if (this.isPreloading) return;
+    this.isPreloading = true;
+
+    try {
+      for (let iter = 0; iter < this.bufferSize; iter++) {
+        const frameTime = startTime + (iter * this.preloadInterval) / 1000;
+        if (frameTime > this.end - this.start) {
+          break;
+        }
+
+        if (!this.frameBuffer.has(frameTime)) {
+          // Create a temporary video element for frame extraction
+          const temporaryVideo = this.videoElement.cloneNode() as HTMLVideoElement;
+          temporaryVideo.currentTime = frameTime * this.speed;
+
+          await new Promise<void>((resolve) => {
+            temporaryVideo.addEventListener(
+              'seeked',
+              () => {
+                if (this.videoSource) {
+                  const frameTexture = new Texture(
+                    new PixiVideoSource({
+                      resource: temporaryVideo,
+                      autoPlay: false,
+                      autoLoad: true,
+                      updateFPS: 0,
+                    })
+                  );
+
+                  if (this.cropRectangle) {
+                    const croppedTexture = this.createCroppedTexture(
+                      new Rectangle(
+                        this.cropRectangle.x,
+                        this.cropRectangle.y,
+                        this.cropRectangle.width,
+                        this.cropRectangle.height
+                      )
+                    );
+                    this.frameBuffer.set(frameTime, croppedTexture);
+                  } else {
+                    this.frameBuffer.set(frameTime, frameTexture);
+                  }
+                }
+                temporaryVideo.remove();
+                resolve();
+              },
+              { once: true }
+            );
+          });
+        }
+      }
+    } finally {
+      this.isPreloading = false;
+    }
+  }
+
   public render(time: number): void {
     if (!this.ready || !this.sprite) {
       logger.warn('VideoClip not loaded, skipping render');
@@ -161,12 +228,24 @@ export class VideoClip extends VisualClip {
       // Apply speed factor to the video time
       const adjustedClipTime = clipTime * this.speed;
 
-      // Only update if the time has changed and we're not already seeking
-      if (this.lastUpdateTime !== adjustedClipTime && !this.pendingSeek) {
-        this.pendingSeek = true;
-        this.videoElement.currentTime = adjustedClipTime;
-        this.lastUpdateTime = adjustedClipTime;
+      // Try to use preloaded frame
+      const nearestFrame = this.findNearestFrame(clipTime);
+      if (nearestFrame !== null && this.frameBuffer.has(nearestFrame)) {
+        const frameTexture = this.frameBuffer.get(nearestFrame)!;
+        if (this.sprite.texture !== frameTexture) {
+          this.sprite.texture = frameTexture;
+        }
+      } else {
+        // Fall back to regular seeking if frame not available
+        if (this.lastUpdateTime !== adjustedClipTime && !this.pendingSeek) {
+          this.pendingSeek = true;
+          this.videoElement.currentTime = adjustedClipTime;
+          this.lastUpdateTime = adjustedClipTime;
+        }
       }
+
+      // Trigger preloading of next frames
+      void this.preloadFrames(clipTime + this.preloadInterval / 1000);
     } else {
       this.container.visible = false;
       this.lastUpdateTime = -1;
@@ -174,8 +253,30 @@ export class VideoClip extends VisualClip {
     }
   }
 
+  private findNearestFrame(time: number): number | null {
+    let nearest = null;
+    let minDiff = Infinity;
+
+    for (const frameTime of this.frameBuffer.keys()) {
+      const diff = Math.abs(frameTime - time);
+      if (diff < minDiff) {
+        minDiff = diff;
+        nearest = frameTime;
+      }
+    }
+
+    // Only use frame if it's within our interval threshold
+    return minDiff <= this.preloadInterval / 1000 ? nearest : null;
+  }
+
   public destroy(): void {
-    this.videoElement.removeEventListener('seeked', () => {});
+    // Clear frame buffer
+    for (const texture of this.frameBuffer.values()) {
+      texture.destroy();
+    }
+    this.frameBuffer.clear();
+
+    this.videoElement.removeEventListener('seeked', this.seekedListener);
     if (this.sprite) {
       this.sprite.destroy();
     }
