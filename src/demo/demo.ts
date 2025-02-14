@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable no-console */
 import { ImageClip } from '../clips/image-clip';
-import { Composition } from '../index';
-import { LogLevel } from '../utils/logger';
-import { ImageSource } from '../sources/image-source';
-import { Scene } from '../composition/scene';
-import { VideoSource } from '../sources/video-source';
+import { TextClip } from '../clips/text-clip';
 import { VideoClip } from '../clips/video-clip';
+import type { Scene } from '../composition/scene';
+import { Composition } from '../index';
+import { ImageSource } from '../sources/image-source';
+import { VideoSource } from '../sources/video-source';
+import { LogLevel } from '../utils/logger';
 
 function createSingleImageScene(composition: Composition, clipperImage: ImageSource): Scene {
   const scene = composition.addScene({ duration: 2 });
@@ -95,6 +98,47 @@ function createPlainVideoScene(composition: Composition, video: VideoSource): Sc
   return plainVideoScene;
 }
 
+function createTextScene(composition: Composition): Scene {
+  const textScene = composition.addScene({ duration: 5 });
+  const textTrack = textScene.addTrack({});
+
+  const titleClip = new TextClip({
+    text: 'Hello, World!',
+    start: 0,
+    end: 5,
+    style: {
+      fontFamily: 'Arial',
+      fontSize: 48,
+      fill: 0xff_ff_ff,
+      fontWeight: 'bold',
+      align: 'center',
+    },
+    top: 200,
+    left: 320, // Center of screen (640/2)
+    width: 640, // Full width to allow center alignment to work
+  });
+
+  const subtitleClip = new TextClip({
+    text: 'Created with danvidstudio',
+    start: 1, // Delayed start
+    end: 5,
+    style: {
+      fontFamily: 'Arial',
+      fontSize: 24,
+      fill: 0x00_ff_00,
+      fontStyle: 'italic',
+      align: 'center',
+    },
+    top: 260,
+    left: 175, // Center of screen (640/2)
+    width: 640, // Full width to allow center alignment to work
+  });
+
+  textTrack.addClip(titleClip);
+  textTrack.addClip(subtitleClip);
+  return textScene;
+}
+
 async function initDemo() {
   // Create progress container
   const progressContainer = document.createElement('div');
@@ -177,7 +221,8 @@ async function initDemo() {
   //await createSingleImageScene(composition, clipperImage);
   //await createSplitImageScene(composition, clipperImage);
   //createAutoSizeAndCropScene(composition, gridImage);
-  createPlainVideoScene(composition, bunnySource);
+  //createPlainVideoScene(composition, bunnySource);
+  createTextScene(composition);
 
   // Subscribe to time updates
   composition.onTimeUpdate((currentTime, totalDuration) => {
@@ -198,9 +243,9 @@ async function initDemo() {
     composition.seek(0);
   });
 
-  playButton.addEventListener('click', async () => {
+  playButton.addEventListener('click', () => {
     try {
-      await composition.play();
+      composition.play();
       status.textContent = 'Playing...';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -208,9 +253,9 @@ async function initDemo() {
     }
   });
 
-  pauseButton.addEventListener('click', async () => {
+  pauseButton.addEventListener('click', () => {
     try {
-      await composition.pause();
+      composition.pause();
       status.textContent = 'Paused';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

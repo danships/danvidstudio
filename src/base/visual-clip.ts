@@ -1,6 +1,6 @@
+import type { Container } from 'pixi.js';
 import { Clip } from './clip';
 import type { Track } from '../composition/track';
-import { Container } from 'pixi.js';
 
 export type VisualOptions = {
   id?: string | undefined;

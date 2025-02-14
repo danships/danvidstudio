@@ -1,7 +1,8 @@
 import { Container } from 'pixi.js';
-import { Track, TrackOptions } from './track';
+import type { Composition } from './composition';
+import type { TrackOptions } from './track';
+import { Track } from './track';
 import { WithId } from '../base/with-id';
-import { Composition } from './composition';
 
 export type SceneOptions = {
   id?: string;
