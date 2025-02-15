@@ -2,6 +2,8 @@
 import type { Ticker } from 'pixi.js';
 import { Application } from 'pixi.js';
 import { Scene, type SceneOptions } from './scene';
+import { ExportManager } from '../export/export-manager';
+import type { ExportOptions, ProgressCallback } from '../export/types';
 import { generateUUID } from '../utils/generate-uuid';
 import { getDurationOfScenes } from '../utils/get-duration-of-scenes';
 import type { LogLevel } from '../utils/logger';
@@ -21,9 +23,9 @@ export class Composition {
   private app: Application;
   private scenes: Scene[] = [];
 
-  private width: number = 1920;
-  private height: number = 1080;
-  private fps: number = 25;
+  public width: number = 1920;
+  public height: number = 1080;
+  public fps: number = 25;
 
   public ready: Promise<void>;
 
@@ -46,6 +48,8 @@ export class Composition {
     }
   };
   private onUpdateTimeThrottled = throttleCallback((time: number) => this.onUpdateTime(time), 100);
+
+  private exportManager!: ExportManager;
 
   constructor(options: CompositionOptions = {}) {
     if (options.logLevel) {
@@ -77,7 +81,17 @@ export class Composition {
       // Configure FPS settings on the ticker
       app.ticker.maxFPS = this.fps;
       app.ticker.add(this.update).stop(); // Stop the ticker by default
+
+      // Initialize export manager after app is ready
+      logger.debug('Creating ExportManager');
+      this.exportManager = new ExportManager(this);
+      logger.debug('ExportManager created successfully');
     })();
+
+    // Catch any initialization errors
+    this.ready.catch((error) => {
+      logger.error('Failed to initialize composition:', error);
+    });
   }
 
   public addScene(options: SceneOptions) {
@@ -199,4 +213,19 @@ export class Composition {
 
     this.scenes[this.playStatus.activeSceneIndex]?.render(this.playStatus.currentTime - sceneTimeElapsed);
   };
+
+  public async export(options: ExportOptions, onProgress?: ProgressCallback): Promise<Blob> {
+    try {
+      logger.debug('Starting export');
+      await this.ready;
+      if (!this.exportManager) {
+        throw new Error('Export manager not initialized');
+      }
+      logger.debug('Export manager ready, starting export');
+      return await this.exportManager.export(options, this.app.stage, onProgress);
+    } catch (error) {
+      logger.error('Export failed:', error);
+      throw error;
+    }
+  }
 }
