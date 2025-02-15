@@ -219,7 +219,7 @@ async function initDemo() {
 
   // Create scenes
   //await createSingleImageScene(composition, clipperImage);
-  //await createSplitImageScene(composition, clipperImage);
+  createSplitImageScene(composition, clipperImage);
   //createAutoSizeAndCropScene(composition, gridImage);
   //createPlainVideoScene(composition, bunnySource);
   createTextScene(composition);
@@ -271,7 +271,7 @@ async function initDemo() {
 
       const blob = await composition.export(
         {
-          format: 'webm',
+          format: 'mp4',
           codec: 'vp8',
           fps: 30,
           bitrate: 5_000_000, // 5 Mbps

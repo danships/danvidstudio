@@ -1,6 +1,7 @@
 import type { Container, ContainerChild } from 'pixi.js';
 import { WebGLRenderer } from 'pixi.js';
-import { Muxer, ArrayBufferTarget } from 'webm-muxer';
+import { Muxer as WebMMuxer, ArrayBufferTarget as WebMArrayBufferTarget } from 'webm-muxer';
+import { Muxer as MP4Muxer, ArrayBufferTarget as MP4ArrayBufferTarget } from 'mp4-muxer';
 import type { CompositionVideoEncoder, ExportOptions, ProgressCallback } from './types';
 import type { Composition } from '../composition/composition';
 import { logger } from '../utils/logger';
@@ -79,6 +80,31 @@ export class WebCodecsEncoder implements CompositionVideoEncoder {
     });
   }
 
+  private initWebMMuxer(fps: number) {
+    return new WebMMuxer({
+      target: new WebMArrayBufferTarget(),
+      video: {
+        codec: 'V_VP9',
+        width: this.width,
+        height: this.height,
+        frameRate: fps,
+      },
+    });
+  }
+
+  private initMP4Muxer(fps: number) {
+    return new MP4Muxer({
+      target: new MP4ArrayBufferTarget(),
+      fastStart: 'in-memory',
+      video: {
+        codec: 'avc',
+        width: this.width,
+        height: this.height,
+        frameRate: fps,
+      },
+    });
+  }
+
   public async encode(
     options: ExportOptions,
     stage: Container<ContainerChild>,
@@ -94,26 +120,20 @@ export class WebCodecsEncoder implements CompositionVideoEncoder {
 
     const fps = options.fps ?? 30;
     const totalFrames = Math.ceil(this.duration * fps);
+    const format = options.format ?? 'webm';
 
     logger.debug('Starting video export', {
       fps,
       totalFrames,
       width: this.width,
       height: this.height,
+      format,
     });
 
-    // Initialize WebM muxer with ArrayBufferTarget
-    const muxer = new Muxer({
-      target: new ArrayBufferTarget(),
-      video: {
-        codec: 'V_VP9',
-        width: this.width,
-        height: this.height,
-        frameRate: fps,
-      },
-    });
+    // Initialize appropriate muxer based on format
+    const muxer = format === 'mp4' ? this.initMP4Muxer(fps) : this.initWebMMuxer(fps);
 
-    // Initialize video encoder
+    // Initialize video encoder with format-specific configuration
     const encoder = new VideoEncoder({
       output: (chunk, meta) => {
         try {
@@ -129,7 +149,7 @@ export class WebCodecsEncoder implements CompositionVideoEncoder {
     let encoderClosed = false;
 
     await encoder.configure({
-      codec: 'vp09.00.10.08', // VP9 profile 0
+      codec: format === 'mp4' ? 'avc1.42001f' : 'vp09.00.10.08',
       width: this.width,
       height: this.height,
       bitrate: options.bitrate ?? 5_000_000,
@@ -149,7 +169,6 @@ export class WebCodecsEncoder implements CompositionVideoEncoder {
           try {
             encoder.encode(frame, { keyFrame });
           } finally {
-            // Always close the frame after encoding
             frame.close();
           }
 
@@ -171,23 +190,24 @@ export class WebCodecsEncoder implements CompositionVideoEncoder {
       encoder.close();
       encoderClosed = true;
 
-      // Finalize the WebM file
-      logger.debug('Finalizing WebM file');
+      // Finalize the file
+      logger.debug(`Finalizing ${format} file`);
       muxer.finalize();
-      const { buffer } = muxer.target;
+      const buffer =
+        format === 'mp4'
+          ? (muxer.target as MP4ArrayBufferTarget).buffer
+          : (muxer.target as WebMArrayBufferTarget).buffer;
 
       logger.debug('Export complete, buffer size:', buffer.byteLength);
-      return new Blob([buffer], { type: 'video/webm' });
+      return new Blob([buffer], { type: format === 'mp4' ? 'video/mp4' : 'video/webm' });
     } catch (error) {
       logger.error('Export error:', error);
       throw error;
     } finally {
-      // Only close the encoder if it hasn't been closed yet
       if (!encoderClosed) {
         try {
           encoder.close();
         } catch (error) {
-          // Ignore errors during cleanup
           logger.debug('Error during encoder cleanup:', error);
         }
       }
