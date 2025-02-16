@@ -158,6 +158,7 @@ export class TextClip extends VisualClip {
 
     // Show/hide the text based on clip timing
     const clipTime = time - this.start;
+    logger.verbose('TextClip', time, this.id, clipTime, this.start, this.end);
     this.container.visible = clipTime >= 0 && clipTime <= this.end - this.start;
   }
 

@@ -47,6 +47,7 @@ export class Composition {
       listener(time, this.duration);
     }
   };
+  // eslint-disable-next-line unicorn/consistent-function-scoping
   private onUpdateTimeThrottled = throttleCallback((time: number) => this.onUpdateTime(time), 100);
 
   private exportManager!: ExportManager;
@@ -140,15 +141,27 @@ export class Composition {
     this.playStatus.currentTime = time;
     this.onUpdateTime(this.playStatus.currentTime);
 
+    const wasRunning = this.playStatus.isPlaying;
+    this.pause();
+
     // Activate that is active at that time
     let sceneTimeBefore = 0;
-    for (const scene of this.scenes) {
+    for (const [index, scene] of this.scenes.entries()) {
       if (time >= sceneTimeBefore && time <= sceneTimeBefore + scene.duration) {
+        scene.render(time - sceneTimeBefore);
         scene.setVisible(true);
+        this.playStatus.activeSceneIndex = index;
       } else {
         scene.setVisible(false);
       }
       sceneTimeBefore += scene.duration;
+    }
+
+    // Force a single render
+    this.app.render();
+
+    if (wasRunning) {
+      this.play();
     }
   }
 
@@ -186,7 +199,7 @@ export class Composition {
     }
 
     // Using the activeSceneIndex, determine how many time already elapsed before the current scene
-    const sceneTimeElapsed =
+    let sceneTimeElapsed =
       this.playStatus.activeSceneIndex > 0
         ? getDurationOfScenes(this.scenes.slice(0, this.playStatus.activeSceneIndex))
         : 0;
@@ -207,6 +220,10 @@ export class Composition {
         nextSceneDuration: this.scenes[this.playStatus.activeSceneIndex]?.duration,
       });
 
+      // Add the timing of the previous scene to the sceneTimeElapsed
+      sceneTimeElapsed += this.scenes[this.playStatus.activeSceneIndex - 1]?.duration ?? 0;
+
+      // Update scene visibility
       this.scenes[this.playStatus.activeSceneIndex - 1]?.setVisible(false); // out with the old
       this.scenes[this.playStatus.activeSceneIndex]?.setVisible(true); // in with the new
     }
