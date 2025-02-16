@@ -1,4 +1,4 @@
-import { Assets, Container, Rectangle, Sprite, Texture } from 'pixi.js';
+import { Container, Rectangle, Sprite, Texture } from 'pixi.js';
 import { VisualClip, type VisualOptions } from '../base/visual-clip';
 import type { ImageSource } from '../sources/image-source';
 import type { Position, Size } from '../types';
@@ -19,17 +19,6 @@ export class ImageClip extends VisualClip {
   private texture: Texture | null = null;
   private sprite: Sprite;
   private cropRectangle: Rectangle | null = null;
-
-  public ready: boolean = false;
-
-  private async blobToDataURL(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.addEventListener('load', () => resolve(reader.result as string));
-      reader.addEventListener('error', reject);
-      reader.readAsDataURL(blob);
-    });
-  }
 
   private createCroppedTexture(texture: Texture, rect: Rectangle): Texture {
     const croppedTexture = new Texture({
@@ -119,16 +108,6 @@ export class ImageClip extends VisualClip {
   }
 
   public render(time: number): void {
-    if (!this.ready) {
-      logger.warn(
-        'ImageClip not loaded, skipping render',
-        this.id,
-        this.ready ? 'ready' : 'not ready',
-        this.sprite ? 'sprite' : 'no sprite'
-      );
-      return;
-    }
-
     this.container.visible = this.start >= time;
   }
 }
