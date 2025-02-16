@@ -1,6 +1,7 @@
 import { Container, VideoSource as PixiVideoSource, Rectangle, Sprite, Texture } from 'pixi.js';
 import { VisualClip, type VisualOptions } from '../base/visual-clip';
 import type { VideoSource } from '../sources/video-source';
+import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
 export type Options = VisualOptions & {
@@ -49,10 +50,8 @@ export class VideoClip extends VisualClip {
       id: options.id,
       start: options.start,
       end: options.end,
-      top: options.top,
-      left: options.left,
-      width: options.width,
-      height: options.height,
+      position: options.position,
+      size: options.size,
       track: options.track,
     });
 
@@ -76,13 +75,6 @@ export class VideoClip extends VisualClip {
     // Listen for seeked event to know when we can capture the frame
     this.videoElement.addEventListener('seeked', this.seekedListener);
 
-    if (!options.width) {
-      this.width = options.crop ? options.crop.width : options.source.width;
-    }
-    if (!options.height) {
-      this.height = options.crop ? options.crop.height : options.source.height;
-    }
-
     // Create PIXI video source
     this.videoSource = new PixiVideoSource({
       resource: this.videoElement,
@@ -101,9 +93,13 @@ export class VideoClip extends VisualClip {
         // Initialize sprite with video texture
         this.texture = new Texture(this.videoSource!);
         this.sprite = new Sprite(this.texture);
-        this.sprite.width = this.width;
-        this.sprite.height = this.height;
-        this.sprite.position.set(this.left, this.top);
+        if (this.size) {
+          this.sprite.width = this.size.width;
+          this.sprite.height = this.size.height;
+        }
+        if (this.position) {
+          this.sprite.position.set(this.position.left, this.position.top);
+        }
         this.container.addChild(this.sprite);
 
         // Apply initial crop if provided
@@ -159,9 +155,9 @@ export class VideoClip extends VisualClip {
       this.sprite.texture = this.texture;
 
       // Update sprite size to match requested dimensions while maintaining aspect ratio
-      if (this.width && this.height) {
-        this.sprite.width = this.width;
-        this.sprite.height = this.height;
+      if (this.size) {
+        this.sprite.width = this.size.width;
+        this.sprite.height = this.size.height;
       } else {
         // If no dimensions specified, use crop dimensions
         this.sprite.width = width;
@@ -185,9 +181,9 @@ export class VideoClip extends VisualClip {
       this.sprite.texture = this.texture;
 
       // Reset sprite size to requested dimensions
-      if (this.width && this.height) {
-        this.sprite.width = this.width;
-        this.sprite.height = this.height;
+      if (this.size) {
+        this.sprite.width = this.size.width;
+        this.sprite.height = this.size.height;
       } else {
         // If no dimensions specified, use video source dimensions
         this.sprite.width = this.videoSource.width;
@@ -197,22 +193,20 @@ export class VideoClip extends VisualClip {
     return this;
   }
 
-  public setSize(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+  public setSize(size: Size) {
     if (this.sprite) {
-      this.sprite.width = width;
-      this.sprite.height = height;
+      this.sprite.width = size.width;
+      this.sprite.height = size.height;
     }
+    super.setSize(size);
     return this;
   }
 
-  public setPosition(top: number, left: number) {
-    this.top = top;
-    this.left = left;
+  public setPosition(position: Position) {
     if (this.sprite) {
-      this.sprite.position.set(left, top);
+      this.sprite.position.set(position.left, position.top);
     }
+    super.setPosition(position);
     return this;
   }
 
@@ -229,7 +223,9 @@ export class VideoClip extends VisualClip {
   }
 
   private async preloadFrames(startTime: number): Promise<void> {
-    if (this.isPreloading) return;
+    if (this.isPreloading) {
+      return;
+    }
     this.isPreloading = true;
 
     try {

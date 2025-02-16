@@ -9,8 +9,10 @@
     "project": "./tsconfig.json",
   },
   "rules": {
-    "no-lonely-if": "error",
+    "curly": "error",
     "no-console": "error",
     "@typescript-eslint/consistent-type-imports": "error",
+    "unicorn/explicit-length-check": "off", // It conflicts with attribute name size
+    "unicorn/number-literal-case": "off",
   },
 }

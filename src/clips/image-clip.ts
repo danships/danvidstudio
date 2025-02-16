@@ -1,6 +1,7 @@
 import { Assets, Container, Rectangle, Sprite, Texture } from 'pixi.js';
 import { VisualClip, type VisualOptions } from '../base/visual-clip';
 import type { ImageSource } from '../sources/image-source';
+import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
 export type Options = VisualOptions & {
@@ -16,7 +17,7 @@ export type Options = VisualOptions & {
 export class ImageClip extends VisualClip {
   private container: Container;
   private texture: Texture | null = null;
-  private sprite: Sprite | null = null;
+  private sprite: Sprite;
   private cropRectangle: Rectangle | null = null;
 
   public ready: boolean = false;
@@ -43,51 +44,30 @@ export class ImageClip extends VisualClip {
       id: options.id,
       start: options.start,
       end: options.end,
-      top: options.top,
-      left: options.left,
-      width: options.width,
-      height: options.height,
+      position: options.position,
+      size: options.size,
       track: options.track,
     });
-
-    if (!options.width) {
-      this.width = options.crop ? options.crop.width : options.source.width;
-    }
-    if (!options.height) {
-      this.height = options.crop ? options.crop.height : options.source.height;
-    }
 
     if (options.crop) {
       this.cropRectangle = new Rectangle(options.crop.x, options.crop.y, options.crop.width, options.crop.height);
     }
 
-    const container = new Container();
-    this.container = container;
+    this.container = new Container();
+    this.sprite = new Sprite({
+      label: this.id,
+      texture: this.cropRectangle
+        ? this.createCroppedTexture(options.source._texture, this.cropRectangle)
+        : options.source._texture,
+    });
+    this.container.addChild(this.sprite);
 
-    (async () => {
-      const dataUrl = await this.blobToDataURL(options.source.blob);
-      this.texture = await Assets.load(dataUrl);
-
-      if (this.cropRectangle && this.texture) {
-        const croppedTexture = this.createCroppedTexture(this.texture, this.cropRectangle);
-        this.sprite = new Sprite({
-          texture: croppedTexture,
-          label: this.id,
-        });
-        this.sprite.setSize(this.width, this.height);
-      } else if (this.texture) {
-        this.sprite = new Sprite({ texture: this.texture, label: this.id });
-        this.sprite.setSize(this.width, this.height);
-      }
-
-      if (this.sprite) {
-        const xOffset = this.cropRectangle ? 0 : 0;
-        const yOffset = this.cropRectangle ? 0 : 0;
-        this.sprite.position.set(this.left + xOffset, this.top + yOffset);
-        this.ready = true;
-        container.addChild(this.sprite);
-      }
-    })();
+    if (options.size) {
+      this.sprite.setSize(options.size.width, options.size.height);
+    }
+    if (options.position) {
+      this.sprite.position.set(options.position.left, options.position.top);
+    }
   }
 
   public setCrop(x: number, y: number, width: number, height: number): this {
@@ -99,8 +79,8 @@ export class ImageClip extends VisualClip {
     this.cropRectangle = new Rectangle(x, y, width, height);
     const croppedTexture = this.createCroppedTexture(this.texture, this.cropRectangle);
     this.sprite.texture = croppedTexture;
-    this.setSize(croppedTexture.width, croppedTexture.height);
-
+    this.setSize({ width: croppedTexture.width, height: croppedTexture.height });
+    this.triggerUpdated('crop set');
     return this;
   }
 
@@ -112,24 +92,24 @@ export class ImageClip extends VisualClip {
 
     this.cropRectangle = null;
     this.sprite.texture = this.texture;
-    this.setSize(this.width, this.height);
+    this.setSize({ width: this.texture.width, height: this.texture.height });
     return this;
   }
 
-  public setSize(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+  public setSize(size: Size) {
+    this.size = size;
     if (this.sprite) {
-      this.sprite.setSize(width, height);
+      this.sprite.setSize(size.width, size.height);
+      this.triggerUpdated('Size changed');
     }
     return this;
   }
 
-  public setPosition(top: number, left: number) {
-    this.top = top;
-    this.left = left;
+  public setPosition(position: Position) {
+    this.position = position;
     if (this.sprite) {
-      this.sprite.position.set(left, top);
+      this.sprite.position.set(position.left, position.top);
+      this.triggerUpdated('Position changed');
     }
     return this;
   }
@@ -139,11 +119,16 @@ export class ImageClip extends VisualClip {
   }
 
   public render(time: number): void {
-    if (!this.ready || !this.sprite) {
-      logger.warn('ImageClip not loaded, skipping render');
+    if (!this.ready) {
+      logger.warn(
+        'ImageClip not loaded, skipping render',
+        this.id,
+        this.ready ? 'ready' : 'not ready',
+        this.sprite ? 'sprite' : 'no sprite'
+      );
       return;
     }
 
-    this.container.visible = this.start >= time ? false : true;
+    this.container.visible = this.start >= time;
   }
 }

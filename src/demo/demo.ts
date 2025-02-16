@@ -11,7 +11,7 @@ import { VideoSource } from '../sources/video-source';
 import { LogLevel } from '../utils/logger';
 
 function createSingleImageScene(composition: Composition, clipperImage: ImageSource): Scene {
-  const scene = composition.addScene({ duration: 2 });
+  const scene = composition.createScene({ duration: 2 });
   const track = scene.addTrack({});
 
   const imageClip = new ImageClip({
@@ -25,26 +25,22 @@ function createSingleImageScene(composition: Composition, clipperImage: ImageSou
 }
 
 function createSplitImageScene(composition: Composition, clipperImage: ImageSource): Scene {
-  const splitScene = composition.addScene({ duration: 1 });
+  const splitScene = composition.createScene({ duration: 1 });
   const splitTrack = splitScene.addTrack({});
 
   const firstClip = new ImageClip({
     source: clipperImage,
     start: 0,
     end: 2,
-    top: 0,
-    left: 0,
-    width: 320,
-    height: 240,
+    position: { top: 0, left: 0 },
+    size: { width: 320, height: 240 },
   });
   const secondClip = new ImageClip({
     source: clipperImage,
     start: 0,
     end: 2,
-    top: 240,
-    left: 320,
-    width: 320,
-    height: 240,
+    position: { top: 240, left: 320 },
+    size: { width: 320, height: 240 },
   });
   splitTrack.addClip(firstClip);
   splitTrack.addClip(secondClip);
@@ -52,15 +48,14 @@ function createSplitImageScene(composition: Composition, clipperImage: ImageSour
 }
 
 function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSource): Scene {
-  const autoSizeScene = composition.addScene({ duration: 1 });
+  const autoSizeScene = composition.createScene({ duration: 1 });
   const autoSizeAndCropTrack = autoSizeScene.addTrack({});
 
   const autoSizeClip = new ImageClip({
     source: gridImage,
     start: 0,
     end: 1,
-    width: 640,
-    height: 480,
+    size: { width: 640, height: 480 },
   });
 
   autoSizeAndCropTrack.addClip(autoSizeClip);
@@ -70,9 +65,8 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
     start: 0,
     end: 1,
     crop: { x: 512, y: 240, width: 640, height: 240 },
-    left: 20,
-    top: 100,
-    width: 320,
+    position: { top: 100, left: 20 },
+    size: { width: 320, height: 240 },
   });
 
   autoSizeAndCropTrack.addClip(croppedClip);
@@ -80,14 +74,14 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
 }
 
 function createPlainVideoScene(composition: Composition, video: VideoSource): Scene {
-  const plainVideoScene = composition.addScene({ duration: 11 });
+  const plainVideoScene = composition.createScene({ duration: 11 });
   const plainVideoTrack = plainVideoScene.addTrack({});
 
   const plainVideoClip = new VideoClip({
     source: video,
     start: 0,
     end: 10,
-    width: 640,
+    size: { width: 640, height: 480 },
     // speed: 2,
     // range: { start: 7, end: 15 },
     crop: { x: 720, y: 720, width: 640, height: 480 },
@@ -99,7 +93,7 @@ function createPlainVideoScene(composition: Composition, video: VideoSource): Sc
 }
 
 function createTextScene(composition: Composition): Scene {
-  const textScene = composition.addScene({ duration: 5 });
+  const textScene = composition.createScene({ duration: 5 });
   const textTrack = textScene.addTrack({});
 
   const titleClip = new TextClip({
@@ -113,9 +107,8 @@ function createTextScene(composition: Composition): Scene {
       fontWeight: 'bold',
       align: 'center',
     },
-    top: 200,
-    left: 320, // Center of screen (640/2)
-    width: 640, // Full width to allow center alignment to work
+    position: { top: 200, left: 320 }, // Center of screen (640/2)
+    size: { width: 640, height: 48 }, // Full width to allow center alignment to work
   });
 
   const subtitleClip = new TextClip({
@@ -130,9 +123,8 @@ function createTextScene(composition: Composition): Scene {
       fontStyle: 'italic',
       align: 'center',
     },
-    top: 260,
-    left: 175, // Center of screen (640/2)
-    width: 640, // Full width to allow center alignment to work
+    position: { top: 260, left: 175 }, // Center of screen (640/2)
+    size: { width: 640, height: 24 }, // Full width to allow center alignment to work
   });
 
   textTrack.addClip(titleClip);
@@ -213,7 +205,7 @@ async function initDemo() {
   document.body.append(status);
 
   // Initialize composition
-  const composition = new Composition({ logLevel: LogLevel.VERBOSE, size: { width: 640, height: 480 } });
+  const composition = new Composition({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
   await composition.ready;
 
   // Load the image source
@@ -223,19 +215,19 @@ async function initDemo() {
     'https://diffusion-studio-public.s3.eu-central-1.amazonaws.com/videos/big_buck_bunny_1080p_30fps.mp4'
   );
 
-  // Create scenes
-  //await createSingleImageScene(composition, clipperImage);
-  createSplitImageScene(composition, clipperImage);
-  //createAutoSizeAndCropScene(composition, gridImage);
-  //createPlainVideoScene(composition, bunnySource);
-  createTextScene(composition);
-
   // Subscribe to time updates
   composition.onTimeUpdate((currentTime, totalDuration) => {
     const progress = (currentTime / totalDuration) * 100;
     progressFill.style.width = `${progress}%`;
     timeDisplay.textContent = `${Math.floor(currentTime)}s / ${Math.floor(totalDuration)}s`;
   });
+
+  // Create scenes
+  //await createSingleImageScene(composition, clipperImage);
+  createSplitImageScene(composition, clipperImage);
+  //createAutoSizeAndCropScene(composition, gridImage);
+  //createPlainVideoScene(composition, bunnySource);
+  createTextScene(composition);
 
   // Preview the composition
   const playerDiv = document.querySelector('#player');
@@ -279,9 +271,7 @@ async function initDemo() {
         {
           format: 'mp4',
           codec: 'vp8',
-          fps: 30,
           bitrate: 5_000_000, // 5 Mbps
-          quality: 0.8,
         },
         (progress) => {
           status.textContent = `Exporting: ${Math.round(progress.percentage)}%`;

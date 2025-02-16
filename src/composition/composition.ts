@@ -22,6 +22,7 @@ type CompositionOptions = {
 export class Composition {
   private app: Application;
   private scenes: Scene[] = [];
+  private playerAttached = false;
 
   public width: number = 1920;
   public height: number = 1080;
@@ -95,7 +96,22 @@ export class Composition {
     });
   }
 
-  public addScene(options: SceneOptions) {
+  /**
+   * One of the underlying scenes, tracks or clips has been updated.
+   * This will trigger a re-render of the composition.
+   */
+  private updateTriggered(reason?: string) {
+    if (reason) {
+      logger.debug('Update triggered:', reason);
+    }
+    this.onUpdateTime(this.playStatus.currentTime);
+    if (this.playerAttached) {
+      this.render(); // Position every container correctly again
+      this.app.render();
+    }
+  }
+
+  public createScene(options: SceneOptions) {
     const scene = new Scene(
       {
         composition: this,
@@ -103,12 +119,14 @@ export class Composition {
           this.duration -= oldDuration;
           this.duration += newDuration;
           logger.debug('Duration updated to:', this.duration);
+          this.updateTriggered();
         },
         setContainer: (container) => {
           this.app.stage.addChild(container);
+          this.updateTriggered();
         },
       },
-      options
+      { ...options, updated: (reason?: string) => this.updateTriggered(reason) }
     );
     scene.setVisible(false);
     this.scenes.push(scene);
@@ -118,10 +136,12 @@ export class Composition {
 
   public attachPlayer(element: HTMLDivElement) {
     element.append(this.app.canvas);
+    this.playerAttached = true;
   }
 
   public detachPlayer() {
     this.app.canvas.remove();
+    this.playerAttached = false;
   }
 
   public play() {
@@ -147,19 +167,17 @@ export class Composition {
     // Activate that is active at that time
     let sceneTimeBefore = 0;
     for (const [index, scene] of this.scenes.entries()) {
-      if (time >= sceneTimeBefore && time <= sceneTimeBefore + scene.duration) {
+      if (time >= sceneTimeBefore && time <= sceneTimeBefore + scene.getDuration()) {
         scene.render(time - sceneTimeBefore);
         scene.setVisible(true);
         this.playStatus.activeSceneIndex = index;
       } else {
         scene.setVisible(false);
       }
-      sceneTimeBefore += scene.duration;
+      sceneTimeBefore += scene.getDuration();
     }
 
-    // Force a single render
     this.app.render();
-
     if (wasRunning) {
       this.play();
     }
@@ -180,11 +198,20 @@ export class Composition {
     logger.verbose('Current time:', this.playStatus.currentTime);
     this.onUpdateTimeThrottled(this.playStatus.currentTime);
 
+    this.render();
+  };
+
+  private render() {
+    if (this.scenes.length === 0) {
+      logger.warn('No scenes to render, skipping.');
+      return;
+    }
+
     // Initialize active scene if not set
     if (this.playStatus.activeSceneIndex === null) {
       logger.debug('Initializing active scene index to 0', {
         id: this.scenes[0]?.id,
-        duration: this.scenes[0]?.duration,
+        duration: this.scenes[0]?.getDuration(),
       });
       this.playStatus.activeSceneIndex = 0;
       this.scenes[this.playStatus.activeSceneIndex]?.setVisible(true);
@@ -206,7 +233,7 @@ export class Composition {
 
     if (
       this.playStatus.currentTime >
-      sceneTimeElapsed + (this.scenes[this.playStatus.activeSceneIndex]?.duration ?? 0)
+      sceneTimeElapsed + (this.scenes[this.playStatus.activeSceneIndex]?.getDuration() ?? 0)
     ) {
       this.playStatus.activeSceneIndex = this.playStatus.activeSceneIndex + 1;
       if (!this.scenes[this.playStatus.activeSceneIndex]) {
@@ -217,11 +244,11 @@ export class Composition {
       logger.debug('Reached end of scene, moving to next scene', {
         time: this.playStatus.currentTime,
         nextSceneIndex: this.playStatus.activeSceneIndex,
-        nextSceneDuration: this.scenes[this.playStatus.activeSceneIndex]?.duration,
+        nextSceneDuration: this.scenes[this.playStatus.activeSceneIndex]?.getDuration(),
       });
 
       // Add the timing of the previous scene to the sceneTimeElapsed
-      sceneTimeElapsed += this.scenes[this.playStatus.activeSceneIndex - 1]?.duration ?? 0;
+      sceneTimeElapsed += this.scenes[this.playStatus.activeSceneIndex - 1]?.getDuration() ?? 0;
 
       // Update scene visibility
       this.scenes[this.playStatus.activeSceneIndex - 1]?.setVisible(false); // out with the old
@@ -229,7 +256,7 @@ export class Composition {
     }
 
     this.scenes[this.playStatus.activeSceneIndex]?.render(this.playStatus.currentTime - sceneTimeElapsed);
-  };
+  }
 
   public async export(options: ExportOptions, onProgress?: ProgressCallback): Promise<Blob> {
     try {

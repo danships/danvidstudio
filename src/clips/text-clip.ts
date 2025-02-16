@@ -1,6 +1,7 @@
-import type { TextStyleFontWeight } from 'pixi.js';
+import type { Size, TextStyleFontWeight } from 'pixi.js';
 import { Container, Text as PixiText, TextStyle } from 'pixi.js';
 import { VisualClip, type VisualOptions } from '../base/visual-clip';
+import type { Position } from '../types';
 import { logger } from '../utils/logger';
 
 export type TextOptions = VisualOptions & {
@@ -11,7 +12,7 @@ export type TextOptions = VisualOptions & {
     fill?: string | number;
     fontStyle?: 'normal' | 'italic' | 'oblique';
     fontWeight?: TextStyleFontWeight;
-    textDecoration?: 'none' | 'underline' | 'line-through';
+    textDecoration?: 'none' | 'line-through';
     letterSpacing?: number;
     lineHeight?: number;
     align?: 'left' | 'center' | 'right';
@@ -32,10 +33,8 @@ export class TextClip extends VisualClip {
       id: options.id,
       start: options.start,
       end: options.end,
-      top: options.top,
-      left: options.left,
-      width: options.width,
-      height: options.height,
+      position: options.position,
+      size: options.size,
       track: options.track,
     });
 
@@ -48,16 +47,36 @@ export class TextClip extends VisualClip {
   private initializeText(): void {
     const styleOptions: Partial<TextStyle> = {};
 
-    if (this.textStyle?.fontFamily) styleOptions.fontFamily = this.textStyle.fontFamily;
-    if (this.textStyle?.fontSize) styleOptions.fontSize = this.textStyle.fontSize;
-    if (this.textStyle?.fill) styleOptions.fill = this.textStyle.fill;
-    if (this.textStyle?.fontStyle) styleOptions.fontStyle = this.textStyle.fontStyle;
-    if (this.textStyle?.fontWeight) styleOptions.fontWeight = this.textStyle.fontWeight;
-    if (this.textStyle?.letterSpacing) styleOptions.letterSpacing = this.textStyle.letterSpacing;
-    if (this.textStyle?.lineHeight) styleOptions.lineHeight = this.textStyle.lineHeight;
-    if (this.textStyle?.align) styleOptions.align = this.textStyle.align;
-    if (this.textStyle?.padding) styleOptions.padding = this.textStyle.padding;
-    if (this.textStyle?.stroke) styleOptions.stroke = this.textStyle.stroke;
+    if (this.textStyle?.fontFamily) {
+      styleOptions.fontFamily = this.textStyle.fontFamily;
+    }
+    if (this.textStyle?.fontSize) {
+      styleOptions.fontSize = this.textStyle.fontSize;
+    }
+    if (this.textStyle?.fill) {
+      styleOptions.fill = this.textStyle.fill;
+    }
+    if (this.textStyle?.fontStyle) {
+      styleOptions.fontStyle = this.textStyle.fontStyle;
+    }
+    if (this.textStyle?.fontWeight) {
+      styleOptions.fontWeight = this.textStyle.fontWeight;
+    }
+    if (this.textStyle?.letterSpacing) {
+      styleOptions.letterSpacing = this.textStyle.letterSpacing;
+    }
+    if (this.textStyle?.lineHeight) {
+      styleOptions.lineHeight = this.textStyle.lineHeight;
+    }
+    if (this.textStyle?.align) {
+      styleOptions.align = this.textStyle.align;
+    }
+    if (this.textStyle?.padding) {
+      styleOptions.padding = this.textStyle.padding;
+    }
+    if (this.textStyle?.stroke) {
+      styleOptions.stroke = this.textStyle.stroke;
+    }
 
     const style = new TextStyle(styleOptions);
 
@@ -66,17 +85,13 @@ export class TextClip extends VisualClip {
       style,
     });
 
-    // Apply text decoration if specified
-    if (this.textStyle?.textDecoration === 'underline') {
-      // PixiJS doesn't have built-in underline, we'll need to implement it separately
-      // This would be a future enhancement
+    // Set position
+    if (this.position) {
+      this.pixiText.position.set(this.position.left, this.position.top);
     }
 
-    // Set position
-    this.pixiText.position.set(this.left, this.top);
-
     // If width/height are specified, we need to scale the text to fit
-    if (this.width || this.height) {
+    if (this.size) {
       this.updateTextSize();
     }
 
@@ -84,19 +99,17 @@ export class TextClip extends VisualClip {
   }
 
   private updateTextSize(): void {
-    if (!this.pixiText) return;
-
-    if (this.width) {
-      // Scale text width to match specified width while maintaining aspect ratio
-      const scale = this.width / this.pixiText.width;
-      this.pixiText.scale.set(scale);
+    if (!this.pixiText || !this.size) {
+      return;
     }
 
-    if (this.height) {
-      // Scale text height to match specified height while maintaining aspect ratio
-      const scale = this.height / this.pixiText.height;
-      this.pixiText.scale.set(scale);
-    }
+    // Calculate scales for both width and height
+    const widthScale = this.size.width / this.pixiText.width;
+    const heightScale = this.size.height / this.pixiText.height;
+
+    // Use the smaller scale to maintain aspect ratio while fitting within bounds
+    const scale = Math.min(widthScale, heightScale);
+    this.pixiText.scale.set(scale);
   }
 
   public setText(text: string): this {
@@ -109,40 +122,62 @@ export class TextClip extends VisualClip {
   }
 
   public setStyle(style: Partial<TextOptions['style']>): this {
-    if (!this.pixiText) return this;
+    if (!this.pixiText) {
+      return this;
+    }
 
     this.textStyle = { ...this.textStyle, ...style };
     const styleOptions: Partial<TextStyle> = {};
 
-    if (this.textStyle?.fontFamily) styleOptions.fontFamily = this.textStyle.fontFamily;
-    if (this.textStyle?.fontSize) styleOptions.fontSize = this.textStyle.fontSize;
-    if (this.textStyle?.fill) styleOptions.fill = this.textStyle.fill;
-    if (this.textStyle?.fontStyle) styleOptions.fontStyle = this.textStyle.fontStyle;
-    if (this.textStyle?.fontWeight) styleOptions.fontWeight = this.textStyle.fontWeight;
-    if (this.textStyle?.letterSpacing) styleOptions.letterSpacing = this.textStyle.letterSpacing;
-    if (this.textStyle?.lineHeight) styleOptions.lineHeight = this.textStyle.lineHeight;
-    if (this.textStyle?.align) styleOptions.align = this.textStyle.align;
-    if (this.textStyle?.padding) styleOptions.padding = this.textStyle.padding;
-    if (this.textStyle?.stroke) styleOptions.stroke = this.textStyle.stroke;
+    if (this.textStyle?.fontFamily) {
+      styleOptions.fontFamily = this.textStyle.fontFamily;
+    }
+    if (this.textStyle?.fontSize) {
+      styleOptions.fontSize = this.textStyle.fontSize;
+    }
+    if (this.textStyle?.fill) {
+      styleOptions.fill = this.textStyle.fill;
+    }
+    if (this.textStyle?.fontStyle) {
+      styleOptions.fontStyle = this.textStyle.fontStyle;
+    }
+    if (this.textStyle?.fontWeight) {
+      styleOptions.fontWeight = this.textStyle.fontWeight;
+    }
+    if (this.textStyle?.letterSpacing) {
+      styleOptions.letterSpacing = this.textStyle.letterSpacing;
+    }
+    if (this.textStyle?.lineHeight) {
+      styleOptions.lineHeight = this.textStyle.lineHeight;
+    }
+    if (this.textStyle?.align) {
+      styleOptions.align = this.textStyle.align;
+    }
+    if (this.textStyle?.padding) {
+      styleOptions.padding = this.textStyle.padding;
+    }
+    if (this.textStyle?.stroke) {
+      styleOptions.stroke = this.textStyle.stroke;
+    }
 
     this.pixiText.style = new TextStyle(styleOptions);
     this.updateTextSize();
     return this;
   }
 
-  public setPosition(top: number, left: number): this {
-    this.top = top;
-    this.left = left;
+  public setPosition(position: Position): this {
     if (this.pixiText) {
-      this.pixiText.position.set(left, top);
+      this.pixiText.position.set(position.left, position.top);
     }
+    super.setPosition(position);
+
     return this;
   }
 
-  public setSize(width: number, height: number): this {
-    this.width = width;
-    this.height = height;
+  public setSize(size: Size): this {
     this.updateTextSize();
+    super.setSize(size);
+
     return this;
   }
 
@@ -158,7 +193,6 @@ export class TextClip extends VisualClip {
 
     // Show/hide the text based on clip timing
     const clipTime = time - this.start;
-    logger.verbose('TextClip', time, this.id, clipTime, this.start, this.end);
     this.container.visible = clipTime >= 0 && clipTime <= this.end - this.start;
   }
 

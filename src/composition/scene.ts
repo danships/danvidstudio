@@ -7,6 +7,7 @@ import { WithId } from '../base/with-id';
 export type SceneOptions = {
   id?: string;
   duration: number;
+  updated?: ((reason?: string) => void) | undefined;
 };
 
 type CompositionDetails = {
@@ -17,20 +18,26 @@ type CompositionDetails = {
 
 export class Scene extends WithId {
   public tracks: Track[] = [];
-  public duration: number;
 
+  private duration: number;
+  private updateDuration: (oldDuration: number, duration: number) => void;
   private container: Container;
   private composition: Composition;
+
+  private updated?: ((reason?: string) => void) | undefined;
 
   constructor({ composition, updateDuration, setContainer }: CompositionDetails, options: SceneOptions) {
     super(options.id);
 
     this.duration = options.duration;
+    this.updateDuration = updateDuration;
     updateDuration(0, this.duration);
 
     this.container = new Container();
     setContainer(this.container);
     this.composition = composition;
+
+    this.updated = options.updated;
   }
 
   public render(time: number) {
@@ -48,8 +55,24 @@ export class Scene extends WithId {
   }
 
   public addTrack(options: TrackOptions) {
-    const track = new Track(this, this.container, options);
+    const track = new Track(this, this.container, { ...options, updated: this.updated });
     this.tracks.push(track);
+    this.updated?.(`Track added ${track.id}`);
     return track;
+  }
+
+  public setDuration(duration: number) {
+    this.duration = duration;
+    this.updateDuration(this.duration, duration);
+    return this;
+  }
+
+  public getDuration() {
+    return this.duration;
+  }
+
+  public _setUpdated(updated: (reason?: string) => void) {
+    this.updated = updated;
+    return this;
   }
 }

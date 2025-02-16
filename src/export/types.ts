@@ -2,10 +2,8 @@ import type { Container, ContainerChild } from 'pixi.js';
 
 export interface ExportOptions {
   format: 'mp4' | 'webm';
-  codec?: 'h264' | 'vp8' | 'vp9';
-  fps?: number;
+  codec?: 'h264' | 'vp8' | 'vp9'; // TODO have different codecs for each container format
   bitrate?: number;
-  quality?: number; // 0-1
 }
 
 export interface ExportProgress {
