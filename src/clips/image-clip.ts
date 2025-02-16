@@ -4,7 +4,7 @@ import type { ImageSource } from '../sources/image-source';
 import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
-export type Options = VisualOptions & {
+export type ImageClipOptions = VisualOptions & {
   source: ImageSource;
   crop?: {
     x: number;
@@ -28,7 +28,7 @@ export class ImageClip extends VisualClip {
     return croppedTexture;
   }
 
-  constructor(options: Options) {
+  constructor(options: ImageClipOptions) {
     super({
       id: options.id,
       start: options.start,
@@ -108,6 +108,6 @@ export class ImageClip extends VisualClip {
   }
 
   public render(time: number): void {
-    this.container.visible = this.start >= time;
+    this.container.visible = this.start <= time && this.end >= time;
   }
 }

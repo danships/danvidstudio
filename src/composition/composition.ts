@@ -131,6 +131,7 @@ export class Composition {
     scene.setVisible(false);
     this.scenes.push(scene);
     logger.info('Added scene', scene.id);
+    this.seek(0); // We seek so that the first scene is visible in the player
     return scene;
   }
 
@@ -162,12 +163,17 @@ export class Composition {
     this.onUpdateTime(this.playStatus.currentTime);
 
     const wasRunning = this.playStatus.isPlaying;
-    this.pause();
+    if (wasRunning) {
+      logger.debug('Temporarily stopping playback when seeking.');
+      this.app.ticker.stop();
+    }
 
     // Activate that is active at that time
     let sceneTimeBefore = 0;
     for (const [index, scene] of this.scenes.entries()) {
       if (time >= sceneTimeBefore && time <= sceneTimeBefore + scene.getDuration()) {
+        logger.debug('Scene is active after seek', index, scene.id);
+
         scene.render(time - sceneTimeBefore);
         scene.setVisible(true);
         this.playStatus.activeSceneIndex = index;
@@ -179,7 +185,8 @@ export class Composition {
 
     this.app.render();
     if (wasRunning) {
-      this.play();
+      logger.debug('Resuming playback');
+      this.app.ticker.start();
     }
   }
 
@@ -241,6 +248,7 @@ export class Composition {
         this.pause();
         return;
       }
+
       logger.debug('Reached end of scene, moving to next scene', {
         time: this.playStatus.currentTime,
         nextSceneIndex: this.playStatus.activeSceneIndex,

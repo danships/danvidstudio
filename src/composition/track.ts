@@ -33,6 +33,8 @@ export class Track extends WithId {
       clip._setUpdated(this.updated);
     }
     this.updated?.(concat('clip added', clip.id));
+
+    return this;
   }
 
   public render(time: number) {

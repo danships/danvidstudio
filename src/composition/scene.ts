@@ -22,11 +22,10 @@ export class Scene extends WithId {
   private duration: number;
   private updateDuration: (oldDuration: number, duration: number) => void;
   private container: Container;
-  private composition: Composition;
 
   private updated?: ((reason?: string) => void) | undefined;
 
-  constructor({ composition, updateDuration, setContainer }: CompositionDetails, options: SceneOptions) {
+  constructor({ updateDuration, setContainer }: CompositionDetails, options: SceneOptions) {
     super(options.id);
 
     this.duration = options.duration;
@@ -35,7 +34,6 @@ export class Scene extends WithId {
 
     this.container = new Container();
     setContainer(this.container);
-    this.composition = composition;
 
     this.updated = options.updated;
   }

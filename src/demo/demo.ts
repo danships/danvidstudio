@@ -7,9 +7,10 @@ import { VideoClip } from '../clips/video-clip';
 import type { Scene } from '../composition/scene';
 import { Composition } from '../index';
 import { ImageSource } from '../sources/image-source';
-import { VideoSource } from '../sources/video-source';
+// import { VideoSource } from '../sources/video-source';
 import { LogLevel } from '../utils/logger';
 
+// @ts-expect-error TODO We don't use all scenes in the demo
 function createSingleImageScene(composition: Composition, clipperImage: ImageSource): Scene {
   const scene = composition.createScene({ duration: 2 });
   const track = scene.addTrack({});
@@ -29,6 +30,7 @@ function createSplitImageScene(composition: Composition, clipperImage: ImageSour
   const splitTrack = splitScene.addTrack({});
 
   const firstClip = new ImageClip({
+    id: 'top-left',
     source: clipperImage,
     start: 0,
     end: 2,
@@ -36,17 +38,18 @@ function createSplitImageScene(composition: Composition, clipperImage: ImageSour
     size: { width: 320, height: 240 },
   });
   const secondClip = new ImageClip({
+    id: 'bottom-right',
     source: clipperImage,
     start: 0,
     end: 2,
     position: { top: 240, left: 320 },
     size: { width: 320, height: 240 },
   });
-  splitTrack.addClip(firstClip);
-  splitTrack.addClip(secondClip);
+  splitTrack.addClip(firstClip).addClip(secondClip);
   return splitScene;
 }
 
+// @ts-expect-error TODO We don't use all scenes in the demo
 function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSource): Scene {
   const autoSizeScene = composition.createScene({ duration: 1 });
   const autoSizeAndCropTrack = autoSizeScene.addTrack({});
@@ -73,6 +76,7 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
   return autoSizeScene;
 }
 
+// @ts-expect-error TODO We don't use all scenes in the demo
 function createPlainVideoScene(composition: Composition, video: VideoSource): Scene {
   const plainVideoScene = composition.createScene({ duration: 11 });
   const plainVideoTrack = plainVideoScene.addTrack({});
@@ -210,10 +214,12 @@ async function initDemo() {
 
   // Load the image source
   const clipperImage = await ImageSource.create('/clipper.jpg');
-  const gridImage = await ImageSource.create('/grid.jpg');
-  const bunnySource = await VideoSource.create(
-    'https://diffusion-studio-public.s3.eu-central-1.amazonaws.com/videos/big_buck_bunny_1080p_30fps.mp4'
-  );
+
+  // TODO We don't use all scenes in the demo
+  // const gridImage = await ImageSource.create('/grid.jpg');
+  // const bunnySource = await VideoSource.create(
+  //   'https://diffusion-studio-public.s3.eu-central-1.amazonaws.com/videos/big_buck_bunny_1080p_30fps.mp4'
+  // );
 
   // Subscribe to time updates
   composition.onTimeUpdate((currentTime, totalDuration) => {

@@ -4,7 +4,7 @@ import type { VideoSource } from '../sources/video-source';
 import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
-export type Options = VisualOptions & {
+export type VideoClipOptions = VisualOptions & {
   source: VideoSource;
   speed?: number;
   range?: {
@@ -45,7 +45,7 @@ export class VideoClip extends VisualClip {
 
   public ready: boolean = false;
 
-  constructor(options: Options) {
+  constructor(options: VideoClipOptions) {
     super({
       id: options.id,
       start: options.start,

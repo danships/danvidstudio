@@ -1,5 +1,5 @@
 import type { Container, ContainerChild } from 'pixi.js';
-import type { CompositionVideoEncoder, ExportOptions, ProgressCallback } from './types';
+import type { ExportOptions, ProgressCallback } from './types';
 import { WebCodecsEncoder } from './web-codecs-encoder';
 import type { Composition } from '../composition/composition';
 import { logger } from '../utils/logger';
@@ -64,7 +64,7 @@ export class ExportManager {
     }
   }
 
-  dispose() {
+  public dispose() {
     // Nothing to dispose since encoder is created per export
   }
 }

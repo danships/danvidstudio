@@ -1,12 +1,12 @@
+import { ArrayBufferTarget as MP4ArrayBufferTarget, Muxer as MP4Muxer } from 'mp4-muxer';
 import type { Container, ContainerChild } from 'pixi.js';
 import { WebGLRenderer } from 'pixi.js';
-import { Muxer as WebMMuxer, ArrayBufferTarget as WebMArrayBufferTarget } from 'webm-muxer';
-import { Muxer as MP4Muxer, ArrayBufferTarget as MP4ArrayBufferTarget } from 'mp4-muxer';
+import { ArrayBufferTarget as WebMArrayBufferTarget, Muxer as WebMMuxer } from 'webm-muxer';
 import type { CompositionVideoEncoder, ExportOptions, ProgressCallback } from './types';
 import type { Composition } from '../composition/composition';
 import { logger } from '../utils/logger';
 
-interface EncoderProps {
+interface EncoderProperties {
   width: number;
   height: number;
   fps: number;
@@ -15,8 +15,6 @@ interface EncoderProps {
 }
 
 export class WebCodecsEncoder implements CompositionVideoEncoder {
-  private static readonly CHUNK_SIZE = 30; // Process 30 frames at a time
-
   private readonly width: number;
   private readonly height: number;
   private readonly fps: number;
@@ -24,7 +22,7 @@ export class WebCodecsEncoder implements CompositionVideoEncoder {
   private readonly seek: (time: number) => void;
   private renderer: WebGLRenderer | null = null;
 
-  constructor(source: Composition | EncoderProps) {
+  constructor(source: Composition | EncoderProperties) {
     if (!source || typeof source !== 'object') {
       logger.error('Invalid source provided to WebCodecsEncoder');
       throw new Error('Source is required');
@@ -148,7 +146,7 @@ export class WebCodecsEncoder implements CompositionVideoEncoder {
 
     let encoderClosed = false;
 
-    await encoder.configure({
+    encoder.configure({
       codec: format === 'mp4' ? 'avc1.42001f' : 'vp09.00.10.08',
       width: this.width,
       height: this.height,

@@ -20,7 +20,12 @@ export default defineConfig({
       },
     },
   },
-  plugins: [dts()],
+  plugins: [
+    dts({
+      exclude: ['**/*.test.ts', '**/test/**', 'src/demo/**'],
+      tsconfigPath: 'tsconfig.build.json',
+    }),
+  ],
   server: {
     open: '/src/demo/index.html',
   },

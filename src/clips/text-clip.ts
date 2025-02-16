@@ -4,7 +4,7 @@ import { VisualClip, type VisualOptions } from '../base/visual-clip';
 import type { Position } from '../types';
 import { logger } from '../utils/logger';
 
-export type TextOptions = VisualOptions & {
+export type TextClipOptions = VisualOptions & {
   text: string;
   style?: {
     fontFamily?: string;
@@ -26,9 +26,9 @@ export class TextClip extends VisualClip {
   private container: Container = new Container();
   private pixiText: PixiText | null = null;
   private textContent: string;
-  private textStyle: Required<TextOptions>['style'];
+  private textStyle: Required<TextClipOptions>['style'];
 
-  constructor(options: TextOptions) {
+  constructor(options: TextClipOptions) {
     super({
       id: options.id,
       start: options.start,
@@ -121,7 +121,7 @@ export class TextClip extends VisualClip {
     return this;
   }
 
-  public setStyle(style: Partial<TextOptions['style']>): this {
+  public setStyle(style: Partial<TextClipOptions['style']>): this {
     if (!this.pixiText) {
       return this;
     }

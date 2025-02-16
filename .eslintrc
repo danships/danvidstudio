@@ -6,7 +6,7 @@
   },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.json",
+    "project": "./tsconfig.dev.json",
   },
   "rules": {
     "curly": "error",
@@ -14,5 +14,23 @@
     "@typescript-eslint/consistent-type-imports": "error",
     "unicorn/explicit-length-check": "off", // It conflicts with attribute name size
     "unicorn/number-literal-case": "off",
+    "no-debugger": "error",
   },
+  "ignorePatterns": ["*.config.{ts,js}"],
+  "overrides": [
+    {
+      "files": ["src/**/*.test.ts", "test/setup.ts"],
+      "rules": {
+        "import/no-extraneous-dependencies": [
+          "error",
+          {
+            "devDependencies": true,
+            "optionalDependencies": false,
+            "peerDependencies": false,
+            "bundledDependencies": false,
+          },
+        ],
+      },
+    },
+  ],
 }
