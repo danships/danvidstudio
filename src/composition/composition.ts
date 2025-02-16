@@ -2,6 +2,8 @@
 import type { Ticker } from 'pixi.js';
 import { Application } from 'pixi.js';
 import { Scene, type SceneOptions } from './scene';
+import { ExportManager } from '../export/export-manager';
+import type { ExportOptions, ProgressCallback } from '../export/types';
 import { generateUUID } from '../utils/generate-uuid';
 import { getDurationOfScenes } from '../utils/get-duration-of-scenes';
 import type { LogLevel } from '../utils/logger';
@@ -21,9 +23,9 @@ export class Composition {
   private app: Application;
   private scenes: Scene[] = [];
 
-  private width: number = 1920;
-  private height: number = 1080;
-  private fps: number = 25;
+  public width: number = 1920;
+  public height: number = 1080;
+  public fps: number = 25;
 
   public ready: Promise<void>;
 
@@ -45,7 +47,10 @@ export class Composition {
       listener(time, this.duration);
     }
   };
+  // eslint-disable-next-line unicorn/consistent-function-scoping
   private onUpdateTimeThrottled = throttleCallback((time: number) => this.onUpdateTime(time), 100);
+
+  private exportManager!: ExportManager;
 
   constructor(options: CompositionOptions = {}) {
     if (options.logLevel) {
@@ -77,7 +82,17 @@ export class Composition {
       // Configure FPS settings on the ticker
       app.ticker.maxFPS = this.fps;
       app.ticker.add(this.update).stop(); // Stop the ticker by default
+
+      // Initialize export manager after app is ready
+      logger.debug('Creating ExportManager');
+      this.exportManager = new ExportManager(this);
+      logger.debug('ExportManager created successfully');
     })();
+
+    // Catch any initialization errors
+    this.ready.catch((error) => {
+      logger.error('Failed to initialize composition:', error);
+    });
   }
 
   public addScene(options: SceneOptions) {
@@ -126,15 +141,27 @@ export class Composition {
     this.playStatus.currentTime = time;
     this.onUpdateTime(this.playStatus.currentTime);
 
+    const wasRunning = this.playStatus.isPlaying;
+    this.pause();
+
     // Activate that is active at that time
     let sceneTimeBefore = 0;
-    for (const scene of this.scenes) {
+    for (const [index, scene] of this.scenes.entries()) {
       if (time >= sceneTimeBefore && time <= sceneTimeBefore + scene.duration) {
+        scene.render(time - sceneTimeBefore);
         scene.setVisible(true);
+        this.playStatus.activeSceneIndex = index;
       } else {
         scene.setVisible(false);
       }
       sceneTimeBefore += scene.duration;
+    }
+
+    // Force a single render
+    this.app.render();
+
+    if (wasRunning) {
+      this.play();
     }
   }
 
@@ -172,7 +199,7 @@ export class Composition {
     }
 
     // Using the activeSceneIndex, determine how many time already elapsed before the current scene
-    const sceneTimeElapsed =
+    let sceneTimeElapsed =
       this.playStatus.activeSceneIndex > 0
         ? getDurationOfScenes(this.scenes.slice(0, this.playStatus.activeSceneIndex))
         : 0;
@@ -193,10 +220,29 @@ export class Composition {
         nextSceneDuration: this.scenes[this.playStatus.activeSceneIndex]?.duration,
       });
 
+      // Add the timing of the previous scene to the sceneTimeElapsed
+      sceneTimeElapsed += this.scenes[this.playStatus.activeSceneIndex - 1]?.duration ?? 0;
+
+      // Update scene visibility
       this.scenes[this.playStatus.activeSceneIndex - 1]?.setVisible(false); // out with the old
       this.scenes[this.playStatus.activeSceneIndex]?.setVisible(true); // in with the new
     }
 
     this.scenes[this.playStatus.activeSceneIndex]?.render(this.playStatus.currentTime - sceneTimeElapsed);
   };
+
+  public async export(options: ExportOptions, onProgress?: ProgressCallback): Promise<Blob> {
+    try {
+      logger.debug('Starting export');
+      await this.ready;
+      if (!this.exportManager) {
+        throw new Error('Export manager not initialized');
+      }
+      logger.debug('Export manager ready, starting export');
+      return await this.exportManager.export(options, this.app.stage, onProgress);
+    } catch (error) {
+      logger.error('Export failed:', error);
+      throw error;
+    }
+  }
 }

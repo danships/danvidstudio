@@ -25,7 +25,7 @@ function createSingleImageScene(composition: Composition, clipperImage: ImageSou
 }
 
 function createSplitImageScene(composition: Composition, clipperImage: ImageSource): Scene {
-  const splitScene = composition.addScene({ duration: 3 });
+  const splitScene = composition.addScene({ duration: 1 });
   const splitTrack = splitScene.addTrack({});
 
   const firstClip = new ImageClip({
@@ -119,6 +119,7 @@ function createTextScene(composition: Composition): Scene {
   });
 
   const subtitleClip = new TextClip({
+    id: 'created-with',
     text: 'Created with danvidstudio',
     start: 1, // Delayed start
     end: 5,
@@ -194,10 +195,15 @@ async function initDemo() {
   exportButton.textContent = 'Export Video';
   exportButton.style.margin = '0 10px';
 
+  const randomSeekButton = document.createElement('button');
+  randomSeekButton.textContent = 'Random Seek';
+  randomSeekButton.style.margin = '0 10px';
+
   controls.append(resetButton);
   controls.append(playButton);
   controls.append(pauseButton);
   controls.append(exportButton);
+  controls.append(randomSeekButton);
   document.body.append(controls);
 
   // Create status text
@@ -207,7 +213,7 @@ async function initDemo() {
   document.body.append(status);
 
   // Initialize composition
-  const composition = new Composition({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
+  const composition = new Composition({ logLevel: LogLevel.VERBOSE, size: { width: 640, height: 480 } });
   await composition.ready;
 
   // Load the image source
@@ -219,7 +225,7 @@ async function initDemo() {
 
   // Create scenes
   //await createSingleImageScene(composition, clipperImage);
-  //await createSplitImageScene(composition, clipperImage);
+  createSplitImageScene(composition, clipperImage);
   //createAutoSizeAndCropScene(composition, gridImage);
   //createPlainVideoScene(composition, bunnySource);
   createTextScene(composition);
@@ -236,7 +242,8 @@ async function initDemo() {
   if (playerDiv) {
     composition.attachPlayer(playerDiv as HTMLDivElement);
   }
-  composition.play();
+  // disable auto play
+  // composition.play();
 
   // Add event listeners
   resetButton.addEventListener('click', () => {
@@ -268,28 +275,41 @@ async function initDemo() {
       status.textContent = 'Exporting...';
       exportButton.disabled = true;
 
-      const blob = await composition.export({
-        format: 'mp4',
-        quality: 1,
-      });
+      const blob = await composition.export(
+        {
+          format: 'mp4',
+          codec: 'vp8',
+          fps: 30,
+          bitrate: 5_000_000, // 5 Mbps
+          quality: 0.8,
+        },
+        (progress) => {
+          status.textContent = `Exporting: ${Math.round(progress.percentage)}%`;
+        }
+      );
 
       // Create download link
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'video.mp4';
+      a.download = 'video.webm';
       document.body.append(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
 
       status.textContent = 'Export complete!';
-    } catch (error: unknown) {
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       status.textContent = `Export failed: ${errorMessage}`;
+      throw error;
     } finally {
       exportButton.disabled = false;
     }
+  });
+
+  randomSeekButton.addEventListener('click', () => {
+    composition.seek(Math.random() * composition.duration);
   });
 }
 
