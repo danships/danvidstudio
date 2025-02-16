@@ -14,6 +14,7 @@
     "lint:eslint": "eslint --ext=js,jsx,ts,tsx --max-warnings=0 src",
     "format": "prettier --write src && eslint --ext=js,jsx,ts,tsx --fix src",
     "test": "vitest",
+    "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "prepare": "husky"
