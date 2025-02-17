@@ -22,6 +22,7 @@ const mockImageSource: ImageSource = {
   _texture: mockTexture,
   width: 100,
   height: 100,
+  destroy: vi.fn(),
 };
 
 describe('ImageClip', () => {

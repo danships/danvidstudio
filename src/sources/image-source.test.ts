@@ -15,7 +15,7 @@ vi.mock('pixi.js', () => ({
 describe('ImageSource', () => {
   describe('constructor', () => {
     it('should create an ImageSource instance with correct properties', () => {
-      const mockTexture = { width: 1920, height: 1080 } as Texture;
+      const mockTexture = { width: 1920, height: 1080, destroy: vi.fn() } as unknown as Texture;
       const width = 1920;
       const height = 1080;
 
@@ -33,7 +33,8 @@ describe('ImageSource', () => {
       const mockTexture = {
         width: 1920,
         height: 1080,
-      } as Texture;
+        destroy: vi.fn(),
+      } as unknown as Texture;
 
       // Mock the Assets.load to return our mock texture
       vi.mocked(Assets.load).mockResolvedValue(mockTexture as unknown as Record<string, unknown>);
@@ -54,6 +55,17 @@ describe('ImageSource', () => {
 
       const url = 'invalid-image.png';
       await expect(ImageSource.create(url)).rejects.toThrow('Failed to load image');
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should destroy texture and clear reference', () => {
+      const mockTexture = { width: 1920, height: 1080, destroy: vi.fn() } as unknown as Texture;
+      const imageSource = new ImageSource(mockTexture, mockTexture.width, mockTexture.height);
+
+      imageSource.destroy();
+
+      expect(mockTexture.destroy).toHaveBeenCalledWith(true);
     });
   });
 });

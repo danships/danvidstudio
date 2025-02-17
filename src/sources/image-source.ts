@@ -12,4 +12,11 @@ export class ImageSource {
 
     return new ImageSource(texture, texture.width, texture.height);
   }
+
+  public destroy(): void {
+    // Destroy the texture and its base texture
+    if (this._texture) {
+      this._texture.destroy(true);
+    }
+  }
 }

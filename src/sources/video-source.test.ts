@@ -2,6 +2,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { VideoSource } from './video-source';
 
+// Mock URL global
+const mockRevokeObjectURL = vi.fn();
+globalThis.URL = {
+  revokeObjectURL: mockRevokeObjectURL,
+} as unknown as typeof globalThis.URL;
+
 describe('VideoSource', () => {
   let mockVideoElement: HTMLVideoElement;
 
@@ -13,7 +19,7 @@ describe('VideoSource', () => {
     mockVideoElement = {
       muted: false,
       playsInline: false,
-      loop: false,
+      loop: true,
       preload: '',
       crossOrigin: null,
       src: '',
@@ -24,24 +30,15 @@ describe('VideoSource', () => {
       pause: vi.fn(),
       remove: vi.fn(),
       addEventListener: vi.fn((event, handler) => {
-        // Simulate metadata loaded
-        if (event === 'loadedmetadata') {
-          setTimeout(() => handler(), 0);
-        }
-        // Simulate data loaded
-        if (event === 'loadeddata') {
-          setTimeout(() => handler(), 0);
-        }
-        // Simulate seeked
-        if (event === 'seeked') {
-          setTimeout(() => handler(), 0);
+        if (event === 'loadedmetadata' || event === 'loadeddata' || event === 'seeked') {
+          // eslint-disable-next-line @typescript-eslint/no-implied-eval
+          setTimeout(handler, 0);
         }
       }),
     } as unknown as HTMLVideoElement;
 
     // Mock document.createElement
-    globalThis.document.createElement = vi.fn(() => mockVideoElement);
-    globalThis.URL.revokeObjectURL = vi.fn();
+    vi.spyOn(document, 'createElement').mockImplementation(() => mockVideoElement);
   });
 
   describe('create', () => {
@@ -90,13 +87,34 @@ describe('VideoSource', () => {
   });
 
   describe('destroy', () => {
-    it('should clean up video resources', async () => {
-      const source = await VideoSource.create('test-video.mp4');
+    it('should properly clean up video resources', async () => {
+      const url = 'test-video.mp4';
+      const source = await VideoSource.create(url);
+      const videoElement = source.getVideoElement();
+
+      // Set a source URL to test revocation
+      videoElement.src = 'blob:test-url';
+
       source.destroy();
 
-      expect(mockVideoElement.pause).toHaveBeenCalled();
-      expect(globalThis.URL.revokeObjectURL).toHaveBeenCalledWith(mockVideoElement.src);
-      expect(mockVideoElement.remove).toHaveBeenCalled();
+      expect(videoElement.pause).toHaveBeenCalled();
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:test-url');
+      expect(videoElement.remove).toHaveBeenCalled();
+    });
+
+    it('should handle destroy when video has no source URL', async () => {
+      const url = 'test-video.mp4';
+      const source = await VideoSource.create(url);
+      const videoElement = source.getVideoElement();
+
+      // Clear the source URL
+      videoElement.src = '';
+
+      source.destroy();
+
+      expect(videoElement.pause).toHaveBeenCalled();
+      expect(mockRevokeObjectURL).not.toHaveBeenCalled(); // Should not try to revoke when no URL
+      expect(videoElement.remove).toHaveBeenCalled();
     });
   });
 });
