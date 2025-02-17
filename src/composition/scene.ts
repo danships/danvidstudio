@@ -73,4 +73,15 @@ export class Scene extends WithId {
     this.updated = updated;
     return this;
   }
+
+  public destroy() {
+    // Destroy all tracks
+    for (const track of this.tracks) {
+      track.destroy();
+    }
+    this.tracks = [];
+
+    // Destroy the container and its children
+    this.container.destroy({ children: true });
+  }
 }

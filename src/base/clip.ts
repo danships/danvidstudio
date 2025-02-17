@@ -55,4 +55,6 @@ export abstract class Clip extends WithId {
   protected triggerUpdated(reason: string) {
     this.updated?.(concat('clip updated', this.id, reason));
   }
+
+  public abstract destroy(): void;
 }

@@ -50,4 +50,15 @@ export class Track extends WithId {
     }
     return this;
   }
+
+  public destroy() {
+    // Destroy all clips
+    for (const clip of this.clips) {
+      clip.destroy();
+    }
+    this.clips = [];
+
+    // Destroy the container and its children
+    this.container.destroy({ children: true });
+  }
 }

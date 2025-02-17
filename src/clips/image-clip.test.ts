@@ -1,6 +1,6 @@
 import type { Texture } from 'pixi.js';
 import { Container, Rectangle, Sprite } from 'pixi.js';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ImageClip } from './image-clip';
 import type { ImageSource } from '../sources/image-source';
 
@@ -15,6 +15,7 @@ const mockTexture = {
   valid: true,
   width: 100,
   height: 100,
+  destroy: vi.fn(),
 } as unknown as Texture;
 
 const mockImageSource: ImageSource = {
@@ -127,6 +128,41 @@ describe('ImageClip', () => {
     it('should hide clip when time is after end', () => {
       imageClip.render(6);
       expect(imageClip._getContainer().visible).toBe(false);
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should destroy sprite, cropped texture, and container', () => {
+      // Set up a cropped texture first
+      imageClip.setCrop(20, 20, 60, 60);
+
+      const sprite = imageClip._getContainer().children[0] as Sprite;
+      const container = imageClip._getContainer();
+
+      const spriteDestroySpy = vi.spyOn(sprite, 'destroy');
+      const textureDestroySpy = vi.spyOn(sprite.texture, 'destroy');
+      const containerDestroySpy = vi.spyOn(container, 'destroy');
+
+      imageClip.destroy();
+
+      expect(spriteDestroySpy).toHaveBeenCalled();
+      expect(textureDestroySpy).toHaveBeenCalled();
+      expect(containerDestroySpy).toHaveBeenCalledWith({ children: true });
+    });
+
+    it('should not destroy texture if no crop is set', () => {
+      const sprite = imageClip._getContainer().children[0] as Sprite;
+      const container = imageClip._getContainer();
+
+      const spriteDestroySpy = vi.spyOn(sprite, 'destroy');
+      const textureDestroySpy = vi.spyOn(sprite.texture, 'destroy');
+      const containerDestroySpy = vi.spyOn(container, 'destroy');
+
+      imageClip.destroy();
+
+      expect(spriteDestroySpy).toHaveBeenCalled();
+      expect(textureDestroySpy).not.toHaveBeenCalled(); // Texture should not be destroyed when no crop
+      expect(containerDestroySpy).toHaveBeenCalledWith({ children: true });
     });
   });
 });

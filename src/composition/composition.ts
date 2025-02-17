@@ -289,6 +289,12 @@ export class Composition {
 
   public destroy() {
     logger.debug('Destroying composition');
+    // Destroy all scenes first
+    for (const scene of this.scenes) {
+      scene.destroy();
+    }
+    this.scenes = [];
+
     this.detachPlayer();
     this.app.destroy();
     this.timeUpdateListeners.clear();

@@ -109,6 +109,20 @@ export class ImageClip extends VisualClip {
   }
 
   public render(time: number): void {
-    this.container.visible = this.start <= time && this.end >= time;
+    const clipTime = time - this.start;
+    this.container.visible = clipTime >= 0 && clipTime <= this.end - this.start;
+  }
+
+  public destroy(): void {
+    if (this.sprite) {
+      if (this.cropRectangle) {
+        this.sprite.texture.destroy();
+      }
+      this.sprite.destroy();
+    }
+
+    this.texture = null;
+
+    this.container.destroy({ children: true });
   }
 }
