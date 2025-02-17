@@ -37,6 +37,25 @@ export class Track extends WithId {
     return this;
   }
 
+  public removeClip(clip: VisualClip) {
+    const index = this.clips.indexOf(clip);
+    if (index === -1) {
+      return;
+    }
+
+    // Remove from clips array
+    this.clips.splice(index, 1);
+
+    // Remove from container
+    // eslint-disable-next-line unicorn/prefer-dom-node-remove
+    this.container.removeChild(clip._getContainer());
+
+    // Clean up the clip
+    clip.destroy();
+
+    this.updated?.(concat('clip removed', clip.id));
+  }
+
   public render(time: number) {
     for (const clip of this.clips) {
       clip.render(time);

@@ -1,39 +1,23 @@
-import { Container } from 'pixi.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Composition } from './composition';
-import type { SceneOptions } from './scene';
+import { Scene } from './scene';
 
 // Mock Scene class
 vi.mock('./scene', () => {
   return {
-    Scene: class MockScene {
-      private duration: number;
-      public id: string = 'mock-scene';
-      private container: Container;
-      private updateDurationCallback: (oldDuration: number, newDuration: number) => void;
+    Scene: vi.fn().mockImplementation((context, options) => {
+      const duration = options.duration;
+      // Call updateDuration with initial duration
+      context.updateDuration(0, duration);
 
-      constructor(
-        context: {
-          updateDuration: (oldDuration: number, newDuration: number) => void;
-        },
-        options: SceneOptions
-      ) {
-        this.duration = options.duration || 0;
-        this.container = new Container();
-        this.updateDurationCallback = context.updateDuration;
-        // Call updateDuration with initial duration
-        this.updateDurationCallback(0, this.duration);
-      }
-
-      public getDuration() {
-        return this.duration;
-      }
-
-      public render = vi.fn();
-      public setVisible(visible: boolean) {
-        this.container.visible = visible;
-      }
-    },
+      return {
+        id: 'mock-scene',
+        destroy: vi.fn(),
+        getDuration: () => duration,
+        setVisible: vi.fn(),
+        render: vi.fn(),
+      };
+    }),
   };
 });
 
@@ -63,26 +47,56 @@ describe('Composition', () => {
   });
 
   describe('scene management', () => {
-    it('should add a scene correctly', async () => {
+    it('should add scenes correctly', async () => {
       await composition.ready;
-      const sceneOptions: SceneOptions = {
-        duration: 5,
-      };
-
-      const scene = composition.createScene(sceneOptions);
-
+      const scene = composition.createScene({ duration: 5 });
       expect(scene).toBeDefined();
-      expect(scene.getDuration()).toBe(5);
+      expect(Scene).toHaveBeenCalled();
+      expect(composition['scenes']).toHaveLength(1);
+      expect(composition.duration).toBe(5);
     });
 
-    it('should update composition duration when adding scenes', async () => {
+    it('should remove scenes correctly', async () => {
       await composition.ready;
-
-      composition.createScene({ duration: 5 });
-      expect(composition.duration).toBe(5);
-
-      composition.createScene({ duration: 3 });
+      const scene1 = composition.createScene({ duration: 5 });
+      const scene2 = composition.createScene({ duration: 3 });
+      expect(composition['scenes']).toHaveLength(2);
       expect(composition.duration).toBe(8);
+
+      // Remove one scene
+      composition.removeScene(scene1);
+      expect(composition['scenes']).toHaveLength(1);
+      expect(scene1.destroy).toHaveBeenCalled();
+      expect(composition['scenes'][0]).toBe(scene2);
+      expect(composition.duration).toBe(3);
+
+      // Try to remove non-existent scene (should not throw)
+      composition.removeScene(scene1);
+      expect(composition['scenes']).toHaveLength(1);
+      expect(composition.duration).toBe(3);
+    });
+
+    it('should handle active scene index when removing scenes', async () => {
+      await composition.ready;
+      const scene1 = composition.createScene({ duration: 5 });
+      const scene2 = composition.createScene({ duration: 3 });
+      const scene3 = composition.createScene({ duration: 4 });
+
+      // Set active scene to middle scene
+      composition['playStatus'].activeSceneIndex = 1;
+
+      // Remove scene before active scene
+      composition.removeScene(scene1);
+      expect(composition['playStatus'].activeSceneIndex).toBe(0);
+
+      // Remove active scene
+      composition.removeScene(scene2);
+      expect(composition['playStatus'].activeSceneIndex).toBe(null);
+
+      // Set active scene and remove last scene
+      composition['playStatus'].activeSceneIndex = 0;
+      composition.removeScene(scene3);
+      expect(composition['playStatus'].activeSceneIndex).toBe(null); // When removing the last scene, activeSceneIndex should be null
     });
   });
 

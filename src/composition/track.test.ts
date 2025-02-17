@@ -5,29 +5,29 @@ import { Track } from './track';
 import type { VisualClip } from '../base/visual-clip';
 
 // Mock VisualClip
+const mockClipContainer = new Container();
 const createMockClip = () =>
   ({
     id: 'mock-clip',
-    _getContainer: () => new Container(),
+    destroy: vi.fn(),
     setTrack: vi.fn(),
     _setUpdated: vi.fn(),
-    destroy: vi.fn(),
+    _getContainer: () => mockClipContainer,
     render: vi.fn(),
   }) as unknown as VisualClip;
 
 describe('Track', () => {
   let track: Track;
-  let mockScene: Scene;
+  let mockScene: Mock;
   let mockParentContainer: Container;
   let mockUpdated: Mock;
 
   beforeEach(() => {
-    mockScene = {} as Scene;
+    mockScene = vi.fn();
     mockParentContainer = new Container();
     mockUpdated = vi.fn();
 
-    track = new Track(mockScene, mockParentContainer, {
-      id: 'test-track',
+    track = new Track(mockScene as unknown as Scene, mockParentContainer, {
       updated: mockUpdated,
     });
   });
@@ -42,12 +42,32 @@ describe('Track', () => {
 
   describe('clip management', () => {
     it('should add clips correctly', () => {
-      const mockClip = createMockClip();
-      track.addClip(mockClip);
+      const clip = createMockClip();
+      track.addClip(clip);
 
-      expect(mockClip.setTrack).toHaveBeenCalledWith(track);
-      expect(mockClip._setUpdated).toHaveBeenCalledWith(mockUpdated);
+      expect(track['clips']).toHaveLength(1);
+      expect(clip.setTrack).toHaveBeenCalledWith(track);
+      expect(clip._setUpdated).toHaveBeenCalledWith(mockUpdated);
       expect(mockUpdated).toHaveBeenCalled();
+    });
+
+    it('should remove clips correctly', () => {
+      const clip1 = createMockClip();
+      const clip2 = createMockClip();
+
+      track.addClip(clip1);
+      track.addClip(clip2);
+      expect(track['clips']).toHaveLength(2);
+
+      // Remove one clip
+      track.removeClip(clip1);
+      expect(track['clips']).toHaveLength(1);
+      expect(clip1.destroy).toHaveBeenCalled();
+      expect(track['clips'][0]).toBe(clip2);
+
+      // Try to remove non-existent clip (should not throw)
+      track.removeClip(clip1);
+      expect(track['clips']).toHaveLength(1);
     });
 
     it('should render all clips', () => {
@@ -64,23 +84,19 @@ describe('Track', () => {
 
   describe('cleanup', () => {
     it('should destroy all clips and container', () => {
-      // Add some clips
-      const mockClip1 = createMockClip();
-      const mockClip2 = createMockClip();
-      track.addClip(mockClip1).addClip(mockClip2);
+      const clip1 = createMockClip();
+      const clip2 = createMockClip();
 
-      // Get container to spy on its destroy method
-      const container = track['container'];
-      const containerDestroySpy = vi.spyOn(container, 'destroy');
+      track.addClip(clip1);
+      track.addClip(clip2);
 
-      // Destroy track
+      const containerDestroySpy = vi.spyOn(track['container'], 'destroy');
+
       track.destroy();
 
-      // Verify all clips were destroyed
-      expect(mockClip1.destroy).toHaveBeenCalled();
-      expect(mockClip2.destroy).toHaveBeenCalled();
-
-      // Verify container was destroyed with children
+      expect(clip1.destroy).toHaveBeenCalled();
+      expect(clip2.destroy).toHaveBeenCalled();
+      expect(track['clips']).toHaveLength(0);
       expect(containerDestroySpy).toHaveBeenCalledWith({ children: true });
     });
 

@@ -135,6 +135,34 @@ export class Composition {
     return scene;
   }
 
+  public removeScene(scene: Scene) {
+    const index = this.scenes.indexOf(scene);
+    if (index === -1) {
+      logger.warn('Scene not found in composition:', scene.id);
+      return;
+    }
+
+    // Remove duration of the scene from total duration
+    this.duration -= scene.getDuration();
+
+    // Remove from scenes array
+    this.scenes.splice(index, 1);
+
+    // Clean up the scene
+    scene.destroy();
+
+    // If we removed the active scene, update playback state
+    if (this.playStatus.activeSceneIndex === index) {
+      this.playStatus.activeSceneIndex = null;
+    } else if (this.playStatus.activeSceneIndex !== null && this.playStatus.activeSceneIndex > index) {
+      // Adjust active scene index if we removed a scene before it
+      this.playStatus.activeSceneIndex--;
+    }
+
+    logger.info('Removed scene', scene.id);
+    this.updateTriggered('Scene removed');
+  }
+
   public attachPlayer(element: HTMLDivElement) {
     element.append(this.app.canvas);
     this.playerAttached = true;

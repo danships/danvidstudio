@@ -54,6 +54,23 @@ describe('Scene', () => {
       expect(Track).toHaveBeenCalled();
       expect(scene.tracks).toHaveLength(1);
     });
+
+    it('should remove tracks correctly', () => {
+      // Add some tracks
+      const track1 = scene.addTrack({});
+      const track2 = scene.addTrack({});
+      expect(scene.tracks).toHaveLength(2);
+
+      // Remove one track
+      scene.removeTrack(track1);
+      expect(scene.tracks).toHaveLength(1);
+      expect(track1.destroy).toHaveBeenCalled();
+      expect(scene.tracks[0]).toBe(track2);
+
+      // Try to remove non-existent track (should not throw)
+      scene.removeTrack(track1);
+      expect(scene.tracks).toHaveLength(1);
+    });
   });
 
   describe('cleanup', () => {

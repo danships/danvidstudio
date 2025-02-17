@@ -59,6 +59,21 @@ export class Scene extends WithId {
     return track;
   }
 
+  public removeTrack(track: Track) {
+    const index = this.tracks.indexOf(track);
+    if (index === -1) {
+      return;
+    }
+
+    // Remove from tracks array
+    this.tracks.splice(index, 1);
+
+    // Clean up the track
+    track.destroy();
+
+    this.updated?.(`Track removed ${track.id}`);
+  }
+
   public setDuration(duration: number) {
     this.duration = duration;
     this.updateDuration(this.duration, duration);
