@@ -16,7 +16,7 @@
     "unicorn/number-literal-case": "off",
     "no-debugger": "error",
   },
-  "ignorePatterns": ["*.config.{ts,js}"],
+  "ignorePatterns": ["*.config.{ts,js}", "src/demo/demo.ts"],
   "overrides": [
     {
       "files": ["src/**/*.test.ts", "test/setup.ts"],

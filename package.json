@@ -21,12 +21,14 @@
   },
   "prettier": "eslint-config-daangemist/.prettierrc",
   "lint-staged": {
-    "!(*config).ts": [
+    "!(*config|demo).ts": [
       "eslint --max-warnings 0 --no-ignore",
-      "sh -c 'tsc -p tsconfig.json --noEmit'"
+      "sh -c 'tsc -p tsconfig.json --noEmit'",
+      "prettier --check --log-level=warn"
     ],
     "!(*config).(js|cjs|mjs)": [
-      "eslint --max-warnings 0 --no-ignore"
+      "eslint --max-warnings 0 --no-ignore",
+      "prettier --check --log-level=warn"
     ],
     "*.(json|md)": [
       "prettier --check --loglevel=warn"

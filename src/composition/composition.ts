@@ -141,6 +141,7 @@ export class Composition {
   }
 
   public detachPlayer() {
+    logger.debug('Detaching player and destroying application');
     this.app.canvas.remove();
     this.playerAttached = false;
   }
@@ -201,6 +202,11 @@ export class Composition {
   }
 
   private update = (time: Ticker) => {
+    if (this.scenes.length === 0) {
+      logger.warn('No scenes to render, skipping.');
+      return;
+    }
+
     this.playStatus.currentTime += time.deltaTime / 60;
     logger.verbose('Current time:', this.playStatus.currentTime);
     this.onUpdateTimeThrottled(this.playStatus.currentTime);
@@ -279,5 +285,12 @@ export class Composition {
       logger.error('Export failed:', error);
       throw error;
     }
+  }
+
+  public destroy() {
+    logger.debug('Destroying composition');
+    this.detachPlayer();
+    this.app.destroy();
+    this.timeUpdateListeners.clear();
   }
 }

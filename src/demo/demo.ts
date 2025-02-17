@@ -7,10 +7,9 @@ import { VideoClip } from '../clips/video-clip';
 import type { Scene } from '../composition/scene';
 import { Composition } from '../index';
 import { ImageSource } from '../sources/image-source';
-// import { VideoSource } from '../sources/video-source';
+import { VideoSource } from '../sources/video-source';
 import { LogLevel } from '../utils/logger';
 
-// @ts-expect-error TODO We don't use all scenes in the demo
 function createSingleImageScene(composition: Composition, clipperImage: ImageSource): Scene {
   const scene = composition.createScene({ duration: 2 });
   const track = scene.addTrack({});
@@ -49,7 +48,6 @@ function createSplitImageScene(composition: Composition, clipperImage: ImageSour
   return splitScene;
 }
 
-// @ts-expect-error TODO We don't use all scenes in the demo
 function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSource): Scene {
   const autoSizeScene = composition.createScene({ duration: 1 });
   const autoSizeAndCropTrack = autoSizeScene.addTrack({});
@@ -76,7 +74,6 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
   return autoSizeScene;
 }
 
-// @ts-expect-error TODO We don't use all scenes in the demo
 function createPlainVideoScene(composition: Composition, video: VideoSource): Scene {
   const plainVideoScene = composition.createScene({ duration: 11 });
   const plainVideoTrack = plainVideoScene.addTrack({});
@@ -136,44 +133,293 @@ function createTextScene(composition: Composition): Scene {
   return textScene;
 }
 
+type SceneDefinition = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  createFn: (composition: Composition, ..._arguments: any[]) => Scene;
+  requiredSources?: string[];
+};
+
+// Scene definitions that can be toggled/reordered
+const availableScenes: SceneDefinition[] = [
+  {
+    id: 'single-image',
+    name: 'Single Image Scene',
+    enabled: false,
+    createFn: (composition: Composition, clipperImage: ImageSource) =>
+      createSingleImageScene(composition, clipperImage),
+    requiredSources: ['clipper.jpg'],
+  },
+  {
+    id: 'split-image',
+    name: 'Split Image Scene',
+    enabled: true,
+    createFn: (composition: Composition, clipperImage: ImageSource) => createSplitImageScene(composition, clipperImage),
+    requiredSources: ['clipper.jpg'],
+  },
+  {
+    id: 'auto-size-and-crop',
+    name: 'Auto Size and Crop Scene',
+    enabled: false,
+    createFn: (composition: Composition, gridImage: ImageSource) => createAutoSizeAndCropScene(composition, gridImage),
+    requiredSources: ['grid.jpg'],
+  },
+  {
+    id: 'plain-video',
+    name: 'Plain Video Scene',
+    enabled: false,
+    createFn: (composition: Composition, video: VideoSource) => createPlainVideoScene(composition, video),
+    requiredSources: ['bunny.mp4'],
+  },
+  {
+    id: 'text',
+    name: 'Text Scene',
+    enabled: true,
+    createFn: (composition: Composition) => createTextScene(composition),
+  },
+];
+
+// Load scene configuration from URL parameters
+function loadSceneConfigFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  let enabledScenes = params.get('scenes')?.split(',') || [];
+
+  // If no scenes are specified in URL, set default scenes
+  if (enabledScenes.length === 0) {
+    enabledScenes = ['split-image', 'text'];
+  }
+
+  // Reset all scenes to disabled
+  availableScenes.forEach((scene) => {
+    scene.enabled = false;
+  });
+
+  // Enable scenes in the order specified in URL or default order
+  enabledScenes.forEach((sceneId) => {
+    const scene = availableScenes.find((s) => s.id === sceneId);
+    if (scene) {
+      scene.enabled = true;
+    }
+  });
+
+  // Reorder scenes based on URL order or default order
+  const orderedScenes = [...availableScenes];
+  orderedScenes.sort((a, b) => {
+    const aIndex = enabledScenes.indexOf(a.id);
+    const bIndex = enabledScenes.indexOf(b.id);
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
+
+  // Update availableScenes array in place
+  availableScenes.splice(0, availableScenes.length, ...orderedScenes);
+}
+
 async function initDemo() {
+  // Load scene configuration from URL
+  loadSceneConfigFromUrl();
+
+  // Create main container for side-by-side layout
+  const mainContainer = document.createElement('div');
+  mainContainer.style.display = 'flex';
+  mainContainer.style.gap = '20px';
+  mainContainer.style.maxWidth = '1200px';
+  mainContainer.style.margin = '20px auto';
+  mainContainer.style.alignItems = 'flex-start';
+  document.body.append(mainContainer);
+
+  // Create left side container for player and controls
+  const playerContainer = document.createElement('div');
+  playerContainer.style.flex = '1';
+  mainContainer.append(playerContainer);
+
+  // Create player div if it doesn't exist
+  let playerDiv = document.querySelector('#player') as HTMLDivElement | null;
+  if (!playerDiv) {
+    playerDiv = document.createElement('div');
+    playerDiv.id = 'player';
+    playerDiv.style.width = '640px';
+    playerDiv.style.height = '480px';
+    playerDiv.style.backgroundColor = '#000';
+    playerContainer.append(playerDiv);
+  }
+
+  // Initialize composition
+  let composition = new Composition({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
+  await composition.ready;
+
+  // Load sources
+  const sources: Record<string, ImageSource | VideoSource> = {
+    'clipper.jpg': await ImageSource.create('/clipper.jpg'),
+    'grid.jpg': await ImageSource.create('/grid.jpg'),
+    'bunny.mp4': await VideoSource.create(
+      'https://diffusion-studio-public.s3.eu-central-1.amazonaws.com/videos/big_buck_bunny_1080p_30fps.mp4'
+    ),
+  };
+
+  // Create right side container for scene manager
+  const rightContainer = document.createElement('div');
+  rightContainer.style.flex = '1';
+  rightContainer.style.maxWidth = '400px';
+  mainContainer.append(rightContainer);
+
+  // Create scene manager (now appending to rightContainer instead of document.body)
+  function createSceneManager(sources: Record<string, ImageSource | VideoSource>) {
+    // Create scene manager container
+    const managerContainer = document.createElement('div');
+    managerContainer.style.padding = '20px';
+    managerContainer.style.backgroundColor = '#f5f5f5';
+    managerContainer.style.borderRadius = '8px';
+
+    // Create title
+    const title = document.createElement('h3');
+    title.textContent = 'Scene Manager';
+    title.style.marginBottom = '15px';
+    managerContainer.append(title);
+
+    // Create scene list
+    const sceneList = document.createElement('div');
+    sceneList.style.marginBottom = '20px';
+
+    // Create scenes
+    availableScenes.forEach((scene, index) => {
+      const sceneItem = document.createElement('div');
+      sceneItem.className = 'scene-item';
+      sceneItem.style.display = 'flex';
+      sceneItem.style.alignItems = 'center';
+      sceneItem.style.padding = '10px';
+      sceneItem.style.backgroundColor = 'white';
+      sceneItem.style.marginBottom = '5px';
+      sceneItem.style.borderRadius = '4px';
+
+      // Enable/disable checkbox
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = scene.enabled;
+      checkbox.style.marginRight = '10px';
+      checkbox.addEventListener('change', () => {
+        scene.enabled = checkbox.checked;
+      });
+
+      // Scene name
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = scene.name;
+      nameSpan.style.flex = '1';
+
+      // Move up button
+      const upButton = document.createElement('button');
+      upButton.textContent = '↑';
+      upButton.style.marginRight = '5px';
+      upButton.disabled = index === 0;
+      upButton.addEventListener('click', () => {
+        if (index > 0) {
+          // Get the scenes we want to swap
+          const currentScene = availableScenes[index];
+          const previousScene = availableScenes[index - 1];
+
+          // Only swap if both scenes exist
+          if (currentScene && previousScene) {
+            availableScenes[index] = previousScene;
+            availableScenes[index - 1] = currentScene;
+            refreshSceneManager();
+          }
+        }
+      });
+
+      // Move down button
+      const downButton = document.createElement('button');
+      downButton.textContent = '↓';
+      downButton.disabled = index === availableScenes.length - 1;
+      downButton.addEventListener('click', () => {
+        if (index < availableScenes.length - 1) {
+          // Get the scenes we want to swap
+          const currentScene = availableScenes[index];
+          const nextScene = availableScenes[index + 1];
+
+          // Only swap if both scenes exist
+          if (currentScene && nextScene) {
+            availableScenes[index] = nextScene;
+            availableScenes[index + 1] = currentScene;
+            refreshSceneManager();
+          }
+        }
+      });
+
+      sceneItem.append(checkbox, nameSpan, upButton, downButton);
+      sceneList.append(sceneItem);
+    });
+
+    // Create apply button
+    const applyButton = document.createElement('button');
+    applyButton.textContent = 'Apply Changes';
+    applyButton.style.padding = '10px 20px';
+    applyButton.style.backgroundColor = '#4CAF50';
+    applyButton.style.color = 'white';
+    applyButton.style.border = 'none';
+    applyButton.style.borderRadius = '4px';
+    applyButton.style.cursor = 'pointer';
+    applyButton.addEventListener('click', () => {
+      // Get enabled scenes in current order
+      const enabledScenes = availableScenes.filter((scene) => scene.enabled).map((scene) => scene.id);
+
+      // Create URL with new scene configuration
+      const params = new URLSearchParams();
+      params.set('scenes', enabledScenes.join(','));
+
+      // Refresh page with new URL
+      window.location.search = params.toString();
+    });
+
+    managerContainer.append(sceneList, applyButton);
+    rightContainer.append(managerContainer);
+
+    function refreshSceneManager() {
+      managerContainer.remove();
+      createSceneManager(sources);
+    }
+  }
+
+  // Create scene manager
+  createSceneManager(sources);
+
+  // Create initial scenes
+  composition = await refreshComposition(sources);
+
   // Create progress container
   const progressContainer = document.createElement('div');
-  progressContainer.style.width = '640';
-  progressContainer.style.margin = '10px auto';
+  progressContainer.style.width = '640px';
+  progressContainer.style.margin = '10px 0';
   progressContainer.style.display = 'flex';
   progressContainer.style.flexDirection = 'column';
   progressContainer.style.gap = '10px';
 
   // Create progress bar
   const progressBar = document.createElement('div');
+  progressBar.className = 'progress-bar';
   progressBar.style.width = '100%';
-  progressBar.style.height = '20px';
-  progressBar.style.backgroundColor = '#ddd';
-  progressBar.style.borderRadius = '10px';
-  progressBar.style.overflow = 'hidden';
 
   const progressFill = document.createElement('div');
+  progressFill.className = 'progress-fill';
   progressFill.style.width = '0%';
-  progressFill.style.height = '100%';
-  progressFill.style.backgroundColor = '#4CAF50';
-  progressFill.style.transition = 'width 0.1s linear';
   progressBar.append(progressFill);
 
   // Create time display
   const timeDisplay = document.createElement('div');
-  timeDisplay.style.fontFamily = 'monospace';
-  timeDisplay.style.textAlign = 'center';
+  timeDisplay.className = 'time-display';
   timeDisplay.textContent = '00:00 / 00:00';
 
   progressContainer.append(progressBar);
   progressContainer.append(timeDisplay);
-  document.body.append(progressContainer);
+  playerContainer.append(progressContainer);
 
   // Create controls
   const controls = document.createElement('div');
+  controls.className = 'controls-container';
   controls.style.textAlign = 'center';
-  controls.style.margin = '20px';
+  controls.style.margin = '20px 0';
 
   const resetButton = document.createElement('button');
   resetButton.textContent = 'Reset';
@@ -200,26 +446,14 @@ async function initDemo() {
   controls.append(pauseButton);
   controls.append(exportButton);
   controls.append(randomSeekButton);
-  document.body.append(controls);
+  playerContainer.append(controls);
 
   // Create status text
   const status = document.createElement('div');
+  status.className = 'status-text';
   status.style.textAlign = 'center';
-  status.style.margin = '20px';
-  document.body.append(status);
-
-  // Initialize composition
-  const composition = new Composition({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
-  await composition.ready;
-
-  // Load the image source
-  const clipperImage = await ImageSource.create('/clipper.jpg');
-
-  // TODO We don't use all scenes in the demo
-  // const gridImage = await ImageSource.create('/grid.jpg');
-  // const bunnySource = await VideoSource.create(
-  //   'https://diffusion-studio-public.s3.eu-central-1.amazonaws.com/videos/big_buck_bunny_1080p_30fps.mp4'
-  // );
+  status.style.margin = '20px 0';
+  playerContainer.append(status);
 
   // Subscribe to time updates
   composition.onTimeUpdate((currentTime, totalDuration) => {
@@ -228,20 +462,16 @@ async function initDemo() {
     timeDisplay.textContent = `${Math.floor(currentTime)}s / ${Math.floor(totalDuration)}s`;
   });
 
-  // Create scenes
-  //await createSingleImageScene(composition, clipperImage);
-  createSplitImageScene(composition, clipperImage);
-  //createAutoSizeAndCropScene(composition, gridImage);
-  //createPlainVideoScene(composition, bunnySource);
-  createTextScene(composition);
-
-  // Preview the composition
-  const playerDiv = document.querySelector('#player');
-  if (playerDiv) {
-    composition.attachPlayer(playerDiv as HTMLDivElement);
+  // Auto-play the composition
+  try {
+    console.log('Before play:', { scenes: composition['scenes'] }); // Debug log
+    composition.play();
+    status.textContent = 'Playing...';
+  } catch (error: unknown) {
+    console.error('Play error:', error); // Debug log
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    status.textContent = `Failed to auto-play: ${errorMessage}`;
   }
-  // disable auto play
-  // composition.play();
 
   // Add event listeners
   resetButton.addEventListener('click', () => {
@@ -307,6 +537,44 @@ async function initDemo() {
   randomSeekButton.addEventListener('click', () => {
     composition.seek(Math.random() * composition.duration);
   });
+}
+
+async function refreshComposition(sources: Record<string, ImageSource | VideoSource>) {
+  // Clear existing scenes by recreating the composition
+  console.log('Creating new composition');
+  const newComposition = new Composition({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
+
+  // Wait for composition to be ready before using it
+  console.log('Waiting for new composition to be ready');
+  await newComposition.ready;
+
+  // Create enabled scenes in the specified order
+  console.log('Creating enabled scenes');
+  for (const scene of availableScenes) {
+    if (scene.enabled) {
+      console.log('Creating scene:', scene.name);
+      if (scene.requiredSources) {
+        const requiredSources = scene.requiredSources.map((source) => sources[source]);
+        scene.createFn(newComposition, ...requiredSources);
+      } else {
+        scene.createFn(newComposition);
+      }
+    }
+  }
+
+  // Attach to player
+  const playerDiv = document.querySelector('#player');
+  if (playerDiv) {
+    console.log('Attaching player');
+    newComposition.attachPlayer(playerDiv as HTMLDivElement);
+    console.log('Player attached');
+
+    // Seek to start to ensure first scene is visible
+    newComposition.seek(0);
+  }
+
+  // Return the new composition
+  return newComposition;
 }
 
 // Initialize the demo
