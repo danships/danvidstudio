@@ -30,6 +30,7 @@
             "bundledDependencies": false,
           },
         ],
+        "@typescript-eslint/unbound-method": "off",
       },
     },
   ],

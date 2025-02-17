@@ -37,6 +37,7 @@ export class ImageClip extends VisualClip {
       size: options.size,
       track: options.track,
     });
+    this.texture = options.source._texture;
 
     if (options.crop) {
       this.cropRectangle = new Rectangle(options.crop.x, options.crop.y, options.crop.width, options.crop.height);
@@ -60,7 +61,7 @@ export class ImageClip extends VisualClip {
   }
 
   public setCrop(x: number, y: number, width: number, height: number): this {
-    if (!this.texture || !this.sprite) {
+    if (!this.texture) {
       logger.warn('Cannot set crop: texture or sprite not loaded');
       return this;
     }

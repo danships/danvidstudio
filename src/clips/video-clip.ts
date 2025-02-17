@@ -22,10 +22,10 @@ export type VideoClipOptions = VisualOptions & {
 export class VideoClip extends VisualClip {
   private container: Container = new Container();
   private texture: Texture | null = null;
-  private sprite: Sprite | null = null;
+  private sprite: Sprite;
   private cropRectangle: Rectangle | null = null;
   private videoElement!: HTMLVideoElement;
-  private videoSource: PixiVideoSource | null = null;
+  private videoSource: PixiVideoSource;
   private lastUpdateTime: number = -1;
   private pendingSeek: boolean = false;
   private speed: number = 1;
@@ -87,21 +87,22 @@ export class VideoClip extends VisualClip {
     this.videoElement.currentTime = this.range.start;
 
     // Initialize sprite with video texture after seeking to correct position
+    this.sprite = new Sprite();
+    if (this.size) {
+      this.sprite.width = this.size.width;
+      this.sprite.height = this.size.height;
+    }
+    if (this.position) {
+      this.sprite.position.set(this.position.left, this.position.top);
+    }
+    this.container.addChild(this.sprite);
+
+    // Initialize sprite with video texture
+    this.texture = new Texture(this.videoSource);
+
     this.videoElement.addEventListener(
       'seeked',
       () => {
-        // Initialize sprite with video texture
-        this.texture = new Texture(this.videoSource!);
-        this.sprite = new Sprite(this.texture);
-        if (this.size) {
-          this.sprite.width = this.size.width;
-          this.sprite.height = this.size.height;
-        }
-        if (this.position) {
-          this.sprite.position.set(this.position.left, this.position.top);
-        }
-        this.container.addChild(this.sprite);
-
         // Apply initial crop if provided
         if (options.crop) {
           this.setCrop(options.crop.x, options.crop.y, options.crop.width, options.crop.height);
@@ -135,7 +136,7 @@ export class VideoClip extends VisualClip {
   }
 
   public setCrop(x: number, y: number, width: number, height: number): this {
-    if (!this.sprite || !this.videoSource) {
+    if (!this.videoSource) {
       logger.warn('Cannot set crop: sprite or video source not loaded');
       return this;
     }
@@ -279,11 +280,6 @@ export class VideoClip extends VisualClip {
   }
 
   public render(time: number): void {
-    if (!this.ready || !this.sprite) {
-      logger.warn('VideoClip not loaded, skipping render');
-      return;
-    }
-
     const clipTime = time - this.start;
     if (clipTime >= 0 && clipTime <= this.end - this.start) {
       this.container.visible = true;

@@ -109,7 +109,7 @@ export class TextClip extends VisualClip {
 
     // Use the smaller scale to maintain aspect ratio while fitting within bounds
     const scale = Math.min(widthScale, heightScale);
-    this.pixiText.scale.set(scale);
+    this.pixiText.scale.set(scale, scale);
   }
 
   public setText(text: string): this {
@@ -175,8 +175,8 @@ export class TextClip extends VisualClip {
   }
 
   public setSize(size: Size): this {
-    this.updateTextSize();
     super.setSize(size);
+    this.updateTextSize();
 
     return this;
   }
