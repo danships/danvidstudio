@@ -3,5 +3,6 @@
   "exclude": ["*.config.ts", "*.config.js"],
   "compilerOptions": {
     "types": ["node", "vitest/globals"]
-  }
+  },
+  "include": ["src", "tests", "*.config.ts"]
 }

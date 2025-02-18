@@ -1,7 +1,7 @@
 import { Assets, type Texture } from 'pixi.js';
 
 export class ImageSource {
-  constructor(
+  private constructor(
     public _texture: Texture,
     public width: number,
     public height: number

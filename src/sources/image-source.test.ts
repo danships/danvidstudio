@@ -13,21 +13,6 @@ vi.mock('pixi.js', () => ({
 }));
 
 describe('ImageSource', () => {
-  describe('constructor', () => {
-    it('should create an ImageSource instance with correct properties', () => {
-      const mockTexture = { width: 1920, height: 1080, destroy: vi.fn() } as unknown as Texture;
-      const width = 1920;
-      const height = 1080;
-
-      const imageSource = new ImageSource(mockTexture, width, height);
-
-      expect(imageSource).toBeInstanceOf(ImageSource);
-      expect(imageSource._texture).toBe(mockTexture);
-      expect(imageSource.width).toBe(width);
-      expect(imageSource.height).toBe(height);
-    });
-  });
-
   describe('create', () => {
     it('should create an ImageSource from a URL', async () => {
       const mockTexture = {
@@ -59,9 +44,9 @@ describe('ImageSource', () => {
   });
 
   describe('cleanup', () => {
-    it('should destroy texture and clear reference', () => {
+    it('should destroy texture and clear reference', async () => {
       const mockTexture = { width: 1920, height: 1080, destroy: vi.fn() } as unknown as Texture;
-      const imageSource = new ImageSource(mockTexture, mockTexture.width, mockTexture.height);
+      const imageSource = await ImageSource.create('test-image.png');
 
       imageSource.destroy();
 

@@ -27,7 +27,7 @@ export default defineConfig({
     }),
   ],
   server: {
-    open: '/src/demo/index.html',
+    open: process.env['MANUAL_TEST'] ? 'tests/integration/index.html' : '/src/demo/index.html',
   },
   publicDir: 'public',
 });

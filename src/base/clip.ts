@@ -44,6 +44,10 @@ export abstract class Clip extends WithId {
     this.triggerUpdated('End changed');
   }
 
+  public getDuration() {
+    return this.end - this.start;
+  }
+
   protected getTrack() {
     if (!this.track) {
       throw new Error('Track is not set');

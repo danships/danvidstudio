@@ -33,5 +33,11 @@
         "@typescript-eslint/unbound-method": "off",
       },
     },
+    {
+      "files": ["tests/**/*.ts"],
+      "rules": {
+        "no-console": "off",
+      },
+    },
   ],
 }

@@ -24,16 +24,16 @@ vi.mock('./scene', () => {
 describe('Composition', () => {
   let composition: Composition;
 
-  beforeEach(() => {
-    composition = new Composition({
+  beforeEach(async () => {
+    composition = await Composition.create({
       size: { width: 1920, height: 1080 },
       fps: 30,
     });
   });
 
   describe('initialization', () => {
-    it('should create a composition with default values', () => {
-      const defaultComposition = new Composition();
+    it('should create a composition with default values', async () => {
+      const defaultComposition = await Composition.create();
       expect(defaultComposition.width).toBe(1920);
       expect(defaultComposition.height).toBe(1080);
       expect(defaultComposition.fps).toBe(25);

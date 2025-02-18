@@ -9,4 +9,4 @@ Filenaming for ts files is kebab-case.
 
 This repository uses vitest to run unit tests. If you make changes, make sure to also update
 any related unit tests in its attached .test.ts file. If you create a new file, make sure to
-also create a related file with unit tests.
+also create a related file with unit tests. Unit tests are only required for files in ./src
