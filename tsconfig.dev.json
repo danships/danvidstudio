@@ -1,8 +1,8 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["*.config.ts", "*.config.js"],
+  "exclude": ["*.config.ts", "*.config.js", "node_modules"],
   "compilerOptions": {
-    "types": ["node", "vitest/globals"]
+    "types": ["node"]
   },
-  "include": ["src", "tests", "*.config.ts"]
+  "include": ["src/**/*", "tests/**/*", "scripts/**/*"]
 }

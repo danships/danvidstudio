@@ -22,7 +22,7 @@ export class PixiTree {
         this.tooltip.style.left = `${event.pageX + 10}px`;
         this.tooltip.style.top = `${event.pageY + 10}px`;
         this.tooltip.style.display = 'block';
-        this.tooltip.textContent = target.dataset.attributes || '';
+        this.tooltip.textContent = target.dataset['attributes'] || '';
       }
     });
 
@@ -56,7 +56,7 @@ export class PixiTree {
     const visibility = object.visible ? '👁️' : '👁️‍🗨️';
     node.textContent = `${visibility} ${name}`;
 
-    node.dataset.attributes = this.getObjectAttributes(object);
+    node.dataset['attributes'] = this.getObjectAttributes(object);
 
     if (object instanceof Container && object.children.length > 0) {
       for (const child of object.children) {
@@ -78,6 +78,7 @@ export class PixiTree {
       this.stopAutoUpdate();
     }
 
+    // @ts-expect-error TS is not properly recognizing this is a web setInterval, not a node Timeout.
     this.updateInterval = globalThis.setInterval(() => {
       this.render();
     }, intervalMs);

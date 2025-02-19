@@ -19,7 +19,7 @@
   "ignorePatterns": ["*.config.{ts,js}", "src/demo/demo.ts"],
   "overrides": [
     {
-      "files": ["src/**/*.test.ts", "test/setup.ts"],
+      "files": ["src/**/*.test.ts", "test/setup.ts", "scripts/**/*.ts"],
       "rules": {
         "import/no-extraneous-dependencies": [
           "error",
@@ -34,9 +34,15 @@
       },
     },
     {
-      "files": ["tests/**/*.ts"],
+      "files": ["tests/**/*.ts", "scripts/**/*.ts"],
       "rules": {
         "no-console": "off",
+      },
+    },
+    {
+      "files": ["scripts/**/*.ts"],
+      "rules": {
+        "unicorn/no-process-exit": "off",
       },
     },
   ],

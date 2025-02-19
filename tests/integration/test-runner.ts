@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { PixiTree } from './pixi-tree';
 import { Timeline } from './timeline';
 import type { Composition } from '../..';
@@ -31,6 +32,7 @@ export class ManualTestRunner {
   private testConfirmationResult: boolean | null = null;
   private alertedOnVerifyTest = false;
   private manuallySelected = false;
+  private stopOnCompletion = false;
 
   constructor(containerId: string) {
     this.container = document.querySelector(`#${containerId}`) || document.body;
@@ -63,7 +65,7 @@ export class ManualTestRunner {
       return;
     }
     this.manuallySelected = true;
-    globalThis.location.href = `?key=${testKey}&automatic=${this.runAutomatic ? 'true' : 'false'}`;
+    globalThis.location.href = `?key=${testKey}&stop=true`;
   }
 
   private setupTabs() {
@@ -72,7 +74,7 @@ export class ManualTestRunner {
 
     for (const button of tabButtons) {
       button.addEventListener('click', () => {
-        const tabId = (button as HTMLElement).dataset.tab;
+        const tabId = (button as HTMLElement).dataset['tab'];
 
         // Update active states
         for (const button_ of tabButtons) {
@@ -92,13 +94,14 @@ export class ManualTestRunner {
     this.testCases.push(testCase);
   }
 
-  public async start(testKey: string, runAutomatic: boolean) {
+  public async start(testKey: string, runAutomatic: boolean, stopOnCompletion: boolean) {
     if (this.testCases.length === 0) {
       console.warn('No test cases added');
       return;
     }
 
     this.runAutomatic = runAutomatic;
+    this.stopOnCompletion = stopOnCompletion;
     const testVerificationControls = document.querySelector(
       '#test-verification-controls'
     ) as unknown as HTMLDivElement | null;
@@ -112,9 +115,13 @@ export class ManualTestRunner {
       return;
     }
 
-    this.testCaseRunning = this.testCases[testIndex];
+    const testCaseRunning = this.testCases[testIndex];
+    if (!testCaseRunning) {
+      throw new Error(`Test with key ${testKey} not found`);
+    }
+    this.testCaseRunning = testCaseRunning;
     this.currentTestIndex = testIndex;
-    await this.runTest(this.testCaseRunning);
+    await this.runTest(testCaseRunning);
 
     if (this.testConfirmationResult) {
       this.verifyTest(true);
@@ -164,6 +171,48 @@ export class ManualTestRunner {
           this.pixiTree = new PixiTree(pixiTreeContainer as HTMLElement, tooltip as HTMLElement, composition);
           this.pixiTree.render();
           this.pixiTree.startAutoUpdate(1000); // Update every second
+        }
+
+        if (!this.runAutomatic) {
+          // Add playback controls
+          const playbackControls = document.createElement('div');
+          playbackControls.className = 'playback-controls';
+
+          const pauseButton = document.createElement('button');
+          pauseButton.textContent = 'Pause';
+          pauseButton.addEventListener('click', () => composition.pause());
+
+          const resumeButton = document.createElement('button');
+          resumeButton.textContent = 'Resume';
+          resumeButton.addEventListener('click', () => composition.play());
+
+          const resetButton = document.createElement('button');
+          resetButton.textContent = 'Reset';
+          resetButton.addEventListener('click', () => {
+            composition.pause();
+            composition.seek(0);
+          });
+
+          const exportButton = document.createElement('button');
+          exportButton.textContent = 'Export';
+          exportButton.addEventListener('click', async () => {
+            const blob = await composition.export({
+              format: 'webm',
+            });
+
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'video.webm';
+            document.body.append(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+          });
+
+          playbackControls.append(pauseButton, resumeButton, resetButton, exportButton);
+          controlsContainer.insertBefore(playbackControls, controlsContainer.firstChild);
         }
 
         const progress = document.createElement('div');
@@ -250,7 +299,7 @@ export class ManualTestRunner {
   }
 
   public verifyTest(passed: boolean) {
-    if (this.alertedOnVerifyTest) {
+    if (this.alertedOnVerifyTest || this.stopOnCompletion) {
       return;
     }
 
@@ -272,14 +321,12 @@ export class ManualTestRunner {
 
     const nextTest = this.testCases[this.currentTestIndex + 1] ?? '';
     if (nextTest) {
-      globalThis.location.href = `?key=${nextTest.key}&automatic=${this.runAutomatic ? 'true' : 'false'}`;
+      console.log('Opening next test', nextTest.key);
+      globalThis.location.href = `?key=${nextTest.key}`;
       return;
     }
 
     if (this.runAutomatic) {
-      if (typeof globalThis.testsCompleted === 'function') {
-        globalThis.testsCompleted();
-      }
       console.log('All tests are done!');
       return;
     }

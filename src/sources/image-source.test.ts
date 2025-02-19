@@ -46,8 +46,10 @@ describe('ImageSource', () => {
   describe('cleanup', () => {
     it('should destroy texture and clear reference', async () => {
       const mockTexture = { width: 1920, height: 1080, destroy: vi.fn() } as unknown as Texture;
-      const imageSource = await ImageSource.create('test-image.png');
+      // Mock successful texture loading
+      vi.mocked(Assets.load).mockResolvedValue(mockTexture as unknown as Record<string, unknown>);
 
+      const imageSource = await ImageSource.create('test-image.png');
       imageSource.destroy();
 
       expect(mockTexture.destroy).toHaveBeenCalledWith(true);
