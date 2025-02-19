@@ -86,7 +86,7 @@ export class VideoClip extends VisualClip {
     // Set initial position to range start
     this.videoElement.currentTime = this.range.start;
 
-    // Initialize sprite with video texture after seeking to correct position
+    // Initialize sprite with video texture
     this.sprite = new Sprite();
     if (this.size) {
       this.sprite.width = this.size.width;
@@ -99,6 +99,7 @@ export class VideoClip extends VisualClip {
 
     // Initialize sprite with video texture
     this.texture = new Texture(this.videoSource);
+    this.sprite.texture = this.texture;
 
     this.videoElement.addEventListener(
       'seeked',
@@ -263,7 +264,13 @@ export class VideoClip extends VisualClip {
                     baseTexture.destroy();
                     this.frameBuffer.set(frameTime, croppedTexture);
                   } else {
-                    this.frameBuffer.set(frameTime, baseTexture);
+                    // Create a new texture that covers the full video frame
+                    const fullTexture = new Texture({
+                      source: baseTexture.source,
+                      frame: new Rectangle(0, 0, baseTexture.source.width, baseTexture.source.height),
+                    });
+                    baseTexture.destroy();
+                    this.frameBuffer.set(frameTime, fullTexture);
                   }
                 }
                 temporaryVideo.remove();

@@ -80,4 +80,8 @@ export class Track extends WithId {
     // Destroy the container and its children
     this.container.destroy({ children: true });
   }
+
+  public getClips() {
+    return this.clips;
+  }
 }

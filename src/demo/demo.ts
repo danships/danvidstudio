@@ -248,8 +248,7 @@ async function initDemo() {
   }
 
   // Initialize composition
-  let composition = new Composition({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
-  await composition.ready;
+  let composition = await Composition.create({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
 
   // Load sources
   const sources: Record<string, ImageSource | VideoSource> = {
@@ -542,7 +541,7 @@ async function initDemo() {
 async function refreshComposition(sources: Record<string, ImageSource | VideoSource>) {
   // Clear existing scenes by recreating the composition
   console.log('Creating new composition');
-  const newComposition = new Composition({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
+  const newComposition = await Composition.create({ logLevel: LogLevel.DEBUG, size: { width: 640, height: 480 } });
 
   // Wait for composition to be ready before using it
   console.log('Waiting for new composition to be ready');

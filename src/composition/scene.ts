@@ -99,4 +99,8 @@ export class Scene extends WithId {
     // Destroy the container and its children
     this.container.destroy({ children: true });
   }
+
+  public getTracks() {
+    return this.tracks;
+  }
 }

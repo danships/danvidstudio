@@ -22,12 +22,12 @@ export default defineConfig({
   },
   plugins: [
     dts({
-      exclude: ['**/*.test.ts', '**/test/**', 'src/demo/**'],
+      exclude: ['**/*.test.ts', '**/test/**', 'src/demo/**', 'tests/**'],
       tsconfigPath: 'tsconfig.build.json',
     }),
   ],
   server: {
-    open: '/src/demo/index.html',
+    open: process.env['INTEGRATION_TEST'] === 'true' ? 'tests/integration/index.html' : '/src/demo/index.html',
   },
   publicDir: 'public',
 });

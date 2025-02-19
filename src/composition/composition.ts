@@ -16,6 +16,7 @@ type CompositionOptions = {
     width: number;
     height: number;
   };
+  backgroundColor?: string;
   fps?: number;
 };
 
@@ -53,7 +54,7 @@ export class Composition {
 
   private exportManager!: ExportManager;
 
-  constructor(options: CompositionOptions = {}) {
+  private constructor(options: CompositionOptions = {}) {
     if (options.logLevel) {
       enableLogger(options.logLevel);
       logger.debug('Logger enabled with level:', options.logLevel);
@@ -74,7 +75,7 @@ export class Composition {
     this.ready = (async () => {
       logger.debug('Initializing application', { width: this.width, height: this.height, fps: this.fps });
       await app.init({
-        background: '#000000',
+        background: options.backgroundColor ?? '#000000',
         resolution: 1,
         width: this.width,
         height: this.height,
@@ -96,6 +97,12 @@ export class Composition {
     });
   }
 
+  public static async create(options: CompositionOptions = {}) {
+    const composition = new Composition(options);
+    await composition.ready;
+    return composition;
+  }
+
   /**
    * One of the underlying scenes, tracks or clips has been updated.
    * This will trigger a re-render of the composition.
@@ -111,7 +118,7 @@ export class Composition {
     }
   }
 
-  public createScene(options: SceneOptions) {
+  public createScene(options: Omit<SceneOptions, 'updated'>) {
     const scene = new Scene(
       {
         composition: this,
@@ -326,5 +333,9 @@ export class Composition {
     this.detachPlayer();
     this.app.destroy();
     this.timeUpdateListeners.clear();
+  }
+
+  public getScenes() {
+    return this.scenes;
   }
 }
