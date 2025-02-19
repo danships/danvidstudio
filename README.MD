@@ -6,4 +6,9 @@
 - [ ] Reorder scenes, tracks, clips, etc.
 - [ ] Allow something like a backdrop to be added at the same level as a scene, so we don't need to add it to each scene.
 - [ ] Add audio support
-- [ ] Improve 1x video playback, by using the pixi.js VideoResource
+- [ ] Improve 1x video playback
+  - [ ] by using the pixi.js VideoResource
+  - [ ] Preload frames exactly on the fps of the composition
+- [ ] Add support for video files
+
+- [ ] Free (pixi) operations, such as rotate, alpha, scale, etc.

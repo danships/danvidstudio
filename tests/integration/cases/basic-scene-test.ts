@@ -12,6 +12,7 @@ export const basicSceneTest: ManualTestCase = {
 
     const backdropSource = await ImageSource.create('/backdrop.jpg');
     const backdropTextClip = new ImageClip({
+      id: 'backdrop-text',
       source: backdropSource,
       start: 0,
       end: 2,
@@ -19,6 +20,7 @@ export const basicSceneTest: ManualTestCase = {
     });
 
     const textClip = new TextClip({
+      id: 'intro-text',
       style: {
         fontSize: 40,
         fontFamily: 'Arial',
@@ -37,6 +39,7 @@ export const basicSceneTest: ManualTestCase = {
 
     const clipper = await ImageSource.create('/clipper.jpg');
     const imageClip = new ImageClip({
+      id: 'clipper',
       source: clipper,
       start: 0,
       end: 2,
@@ -47,6 +50,7 @@ export const basicSceneTest: ManualTestCase = {
     const track = scene.addTrack({});
 
     const backdropImageClip = new ImageClip({
+      id: 'backdrop-image',
       source: backdropSource,
       start: 0,
       end: 2,
@@ -59,5 +63,9 @@ export const basicSceneTest: ManualTestCase = {
     composition.play();
 
     return composition;
+  },
+  run: async ({ confirm, sleep }) => {
+    await sleep(3500);
+    return confirm('Did you see the gradient background with first the text and then the image?');
   },
 };

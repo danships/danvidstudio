@@ -104,6 +104,7 @@
       button {
         padding: 10px 20px;
         margin-right: 10px;
+        margin-bottom: 8px;
         border: none;
         border-radius: 4px;
         background: #007bff;
@@ -124,12 +125,30 @@
         z-index: 1000;
         display: none;
       }
+      .test-selector {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+      .test-selector select {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        background: white;
+        font-size: 14px;
+        min-width: 200px;
+      }
     </style>
   </head>
   <body>
-    <div id="test-container"></div>
+    <div id="test-container">
+      <div id="test-selector" class="test-selector" style="display: none">
+        <select id="test-case-select" onchange="window.__testRunner?.jumpToTest(this.value)">
+          <option value="">Select a test case...</option>
+        </select>
+      </div>
+    </div>
     <div id="test-controls-container" style="display: none"></div>
-    <div id="test-verification-controls"></div>
     <div class="tabs-container">
       <div class="tab-buttons">
         <button class="tab-button active" data-tab="timeline">Timeline</button>

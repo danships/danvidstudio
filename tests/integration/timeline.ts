@@ -1,7 +1,7 @@
 import type { Clip } from '../..';
-import type { Composition } from '../../src/composition/composition';
-import type { Scene } from '../../src/composition/scene';
-import type { Track } from '../../src/composition/track';
+import type { Composition } from '../..';
+import type { Scene } from '../..';
+import type { Track } from '../..';
 
 export class Timeline {
   private container: HTMLElement;
@@ -130,7 +130,7 @@ export class Timeline {
     clipInfo.className = 'clip-info';
 
     const clipType = document.createElement('span');
-    clipType.textContent = `${clip.id}/${clip.constructor.name.replace('Clip', '')}`;
+    clipType.textContent = `Clip ${clip.id}/${clip.constructor.name.replace('Clip', '')}`;
 
     const clipDuration = document.createElement('span');
     clipDuration.textContent = `${clip.getDuration().toFixed(1)}s`;

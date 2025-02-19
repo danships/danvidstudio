@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.build.json && vite build",
     "preview": "vite preview",
     "lint": "concurrently --kill-others-on-fail \"npm:lint:*\"",
-    "lint:prettier": "prettier --check --log-level=warn src,tests",
+    "lint:prettier": "prettier --check --log-level=warn src tests",
     "lint:tsc": "tsc --noEmit",
     "lint:eslint": "eslint --ext=js,jsx,ts,tsx --max-warnings=0 src tests",
     "format": "prettier --write src tests && eslint --ext=js,jsx,ts,tsx --fix src tests",
