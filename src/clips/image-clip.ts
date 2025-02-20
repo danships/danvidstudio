@@ -1,13 +1,15 @@
 import { Container, Rectangle, Sprite, Texture } from 'pixi.js';
-import { VisualClip, type VisualOptions } from '../base/visual-clip';
+import { VisualClip, type VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip';
 import type { ImageSource } from '../sources/image-source';
 import type { Crop } from '../types';
 import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
-export type ImageClipOptions = VisualOptions & {
+export type ImageClipOptions = VisualClipOptionsWithoutOffsetDuration & {
   source: ImageSource;
   crop?: Crop;
+  offset?: number;
+  duration: number;
 };
 
 export class ImageClip extends VisualClip {
@@ -27,8 +29,8 @@ export class ImageClip extends VisualClip {
   constructor(options: ImageClipOptions) {
     super({
       id: options.id,
-      start: options.start,
-      end: options.end,
+      offset: options.offset ?? 0,
+      duration: options.duration,
       position: options.position,
       size: options.size,
       track: options.track,
@@ -105,8 +107,8 @@ export class ImageClip extends VisualClip {
   }
 
   public render(time: number): void {
-    const clipTime = time - this.start;
-    this.container.visible = clipTime >= 0 && clipTime <= this.end - this.start;
+    const clipTime = time - this.offset;
+    this.container.visible = clipTime >= 0 && clipTime <= this.duration;
   }
 
   public destroy(): void {

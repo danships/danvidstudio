@@ -1,12 +1,15 @@
 import { Container, VideoSource as PixiVideoSource, Rectangle, Sprite, Texture } from 'pixi.js';
-import { VisualClip, type VisualOptions } from '../base/visual-clip';
+import type { VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip';
+import { VisualClip } from '../base/visual-clip';
 import type { VideoSource } from '../sources/video-source';
 import type { Crop } from '../types';
 import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
-export type VideoClipOptions = VisualOptions & {
+export type VideoClipOptions = VisualClipOptionsWithoutOffsetDuration & {
   source: VideoSource;
+  offset?: number;
+  duration?: number;
   speed?: number;
   range?: {
     start: number; // Start time in the source video (in seconds)
@@ -44,8 +47,8 @@ export class VideoClip extends VisualClip {
   constructor(options: VideoClipOptions) {
     super({
       id: options.id,
-      start: options.start,
-      end: options.end,
+      offset: options.offset ?? 0,
+      duration: options.duration ?? options.source.duration,
       position: options.position,
       size: options.size,
       track: options.track,
@@ -229,10 +232,9 @@ export class VideoClip extends VisualClip {
     try {
       for (let iter = 0; iter < this.bufferSize; iter++) {
         const frameTime = startTime + (iter * this.preloadInterval) / 1000;
-        const clipDuration = this.end - this.start;
 
         // Stop preloading if we're beyond the clip duration
-        if (frameTime > clipDuration) {
+        if (frameTime > this.duration) {
           break;
         }
 
@@ -283,8 +285,8 @@ export class VideoClip extends VisualClip {
   }
 
   public render(time: number): void {
-    const clipTime = time - this.start;
-    if (clipTime >= 0 && clipTime <= this.end - this.start) {
+    const clipTime = time - this.offset;
+    if (clipTime >= 0 && clipTime <= this.duration) {
       this.container.visible = true;
 
       // Try to use preloaded frame

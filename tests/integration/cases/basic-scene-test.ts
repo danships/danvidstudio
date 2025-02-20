@@ -14,8 +14,8 @@ export const basicSceneTest: ManualTestCase = {
     const backdropTextClip = new ImageClip({
       id: 'backdrop-text',
       source: backdropSource,
-      start: 0,
-      end: 2,
+      offset: 0,
+      duration: 2,
       position: { left: -200, top: -200 },
     });
 
@@ -28,8 +28,8 @@ export const basicSceneTest: ManualTestCase = {
         fill: '#FFFFFF',
       },
       text: 'First danvidstudio test case',
-      start: 0,
-      end: 1.5,
+      offset: 0,
+      duration: 1.5,
       position: { left: 40, top: 200 },
     });
     const textScene = composition.createScene({ duration: 1.5 });
@@ -41,8 +41,8 @@ export const basicSceneTest: ManualTestCase = {
     const imageClip = new ImageClip({
       id: 'clipper',
       source: clipper,
-      start: 0,
-      end: 2,
+      offset: 0,
+      duration: 2,
       position: { left: 80, top: 10 },
       size: { width: 480, height: 460 },
     });
@@ -52,8 +52,8 @@ export const basicSceneTest: ManualTestCase = {
     const backdropImageClip = new ImageClip({
       id: 'backdrop-image',
       source: backdropSource,
-      start: 0,
-      end: 2,
+      offset: 0,
+      duration: 2,
       position: { left: -200, top: -200 },
     });
     track.addClip(backdropImageClip);

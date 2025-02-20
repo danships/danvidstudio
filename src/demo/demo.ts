@@ -16,8 +16,8 @@ function createSingleImageScene(composition: Composition, clipperImage: ImageSou
 
   const imageClip = new ImageClip({
     source: clipperImage,
-    start: 0,
-    end: 10,
+    offset: 0,
+    duration: 10,
   });
 
   track.addClip(imageClip);
@@ -31,16 +31,16 @@ function createSplitImageScene(composition: Composition, clipperImage: ImageSour
   const firstClip = new ImageClip({
     id: 'top-left',
     source: clipperImage,
-    start: 0,
-    end: 2,
+    offset: 0,
+    duration: 2,
     position: { top: 0, left: 0 },
     size: { width: 320, height: 240 },
   });
   const secondClip = new ImageClip({
     id: 'bottom-right',
     source: clipperImage,
-    start: 0,
-    end: 2,
+    offset: 0,
+    duration: 2,
     position: { top: 240, left: 320 },
     size: { width: 320, height: 240 },
   });
@@ -54,8 +54,8 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
 
   const autoSizeClip = new ImageClip({
     source: gridImage,
-    start: 0,
-    end: 1,
+    offset: 0,
+    duration: 1,
     size: { width: 640, height: 480 },
   });
 
@@ -63,8 +63,8 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
 
   const croppedClip = new ImageClip({
     source: gridImage,
-    start: 0,
-    end: 1,
+    offset: 0,
+    duration: 1,
     crop: { left: 512, top: 240, width: 640, height: 240 },
     position: { top: 100, left: 20 },
     size: { width: 320, height: 240 },
@@ -80,8 +80,8 @@ function createPlainVideoScene(composition: Composition, video: VideoSource): Sc
 
   const plainVideoClip = new VideoClip({
     source: video,
-    start: 0,
-    end: 10,
+    offset: 0,
+    duration: 10,
     size: { width: 640, height: 480 },
     // speed: 2,
     // range: { start: 7, end: 15 },
@@ -99,8 +99,8 @@ function createTextScene(composition: Composition): Scene {
 
   const titleClip = new TextClip({
     text: 'Hello, World!',
-    start: 0,
-    end: 5,
+    offset: 0,
+    duration: 5,
     style: {
       fontFamily: 'Arial',
       fontSize: 48,
@@ -115,8 +115,8 @@ function createTextScene(composition: Composition): Scene {
   const subtitleClip = new TextClip({
     id: 'created-with',
     text: 'Created with danvidstudio',
-    start: 1, // Delayed start
-    end: 5,
+    offset: 1, // Delayed start
+    duration: 4,
     style: {
       fontFamily: 'Arial',
       fontSize: 24,

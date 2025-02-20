@@ -14,8 +14,8 @@ export const simpleVideoTest: ManualTestCase = {
     );
     const videoClip = new VideoClip({
       source: videoSource,
-      start: 0,
-      end: 5,
+      offset: 0,
+      duration: 5,
       size: { width: 640, height: 480 },
     });
 

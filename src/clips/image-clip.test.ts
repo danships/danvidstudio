@@ -31,8 +31,8 @@ describe('ImageClip', () => {
   beforeEach(() => {
     imageClip = new ImageClip({
       id: 'test-image',
-      start: 0,
-      end: 5,
+      offset: 0,
+      duration: 5,
       source: mockImageSource,
     });
   });
@@ -48,8 +48,8 @@ describe('ImageClip', () => {
     it('should create an image clip with custom position and size', () => {
       const customClip = new ImageClip({
         id: 'test-image',
-        start: 0,
-        end: 5,
+        offset: 0,
+        duration: 5,
         source: mockImageSource,
         position: { left: 10, top: 20 },
         size: { width: 200, height: 150 },
@@ -65,8 +65,8 @@ describe('ImageClip', () => {
     it('should create an image clip with initial crop', () => {
       const croppedClip = new ImageClip({
         id: 'test-image',
-        start: 0,
-        end: 5,
+        offset: 0,
+        duration: 5,
         source: mockImageSource,
         crop: { left: 10, top: 10, width: 50, height: 50 },
       });

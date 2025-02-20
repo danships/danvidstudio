@@ -27,8 +27,8 @@ export const countdownTest: ManualTestCase = {
       const backgroundClip = new ImageClip({
         id: `background-${iter}`,
         source: backdropImage,
-        start: 10 - iter,
-        end: 11 - iter,
+        offset: 10 - iter,
+        duration: 1,
         crop: {
           left: 220 + offset,
           top: 140 + offset,
@@ -47,8 +47,8 @@ export const countdownTest: ManualTestCase = {
           fill: '#FFFFFF',
         },
         text: iter.toString(),
-        start: 10 - iter,
-        end: 11 - iter,
+        offset: 10 - iter,
+        duration: 1,
         position: {
           left: 245,
           top: 180,
@@ -56,8 +56,8 @@ export const countdownTest: ManualTestCase = {
       });
 
       if (iter === 0) {
-        textClip.end = 10.1;
-        backgroundClip.end = 10.1;
+        textClip.setDuration(0.1);
+        backgroundClip.setDuration(0.1);
       }
       track.addClip(backgroundClip);
       track.addClip(textClip);

@@ -1,11 +1,13 @@
 import type { Size, TextStyleFontWeight } from 'pixi.js';
 import { Container, Text as PixiText, TextStyle } from 'pixi.js';
-import { VisualClip, type VisualOptions } from '../base/visual-clip';
+import { VisualClip, type VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip';
 import type { Position } from '../types';
 import { logger } from '../utils/logger';
 
-export type TextClipOptions = VisualOptions & {
+export type TextClipOptions = VisualClipOptionsWithoutOffsetDuration & {
   text: string;
+  offset?: number;
+  duration: number;
   style?: {
     fontFamily?: string;
     fontSize?: number;
@@ -31,8 +33,8 @@ export class TextClip extends VisualClip {
   constructor(options: TextClipOptions) {
     super({
       id: options.id,
-      start: options.start,
-      end: options.end,
+      offset: options.offset ?? 0,
+      duration: options.duration,
       position: options.position,
       size: options.size,
       track: options.track,
@@ -192,8 +194,8 @@ export class TextClip extends VisualClip {
     }
 
     // Show/hide the text based on clip timing
-    const clipTime = time - this.start;
-    this.container.visible = clipTime >= 0 && clipTime <= this.end - this.start;
+    const clipTime = time - this.offset;
+    this.container.visible = clipTime >= 0 && clipTime <= this.duration;
   }
 
   public destroy(): void {

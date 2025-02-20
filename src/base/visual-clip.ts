@@ -5,20 +5,28 @@ import type { Position, Size } from '../types';
 
 export type VisualOptions = {
   id?: string | undefined;
-  start: number;
-  end: number;
+  offset: number;
+  duration: number;
   position?: Position | undefined;
   size?: Size | undefined;
   track?: Track | undefined;
   updated?: ((reason?: string) => void) | undefined;
 };
 
+export type VisualClipOptionsWithoutOffsetDuration = Omit<VisualOptions, 'offset' | 'duration'>;
+
 export abstract class VisualClip extends Clip {
   protected position?: Position;
   protected size?: Size;
 
   constructor(options: VisualOptions) {
-    super({ id: options.id, start: options.start, end: options.end, track: options.track, updated: options.updated });
+    super({
+      id: options.id,
+      offset: options.offset,
+      duration: options.duration,
+      track: options.track,
+      updated: options.updated,
+    });
 
     if (options.position) {
       this.position = options.position;

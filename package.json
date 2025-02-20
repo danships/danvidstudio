@@ -7,6 +7,7 @@
   "license": "MPL-2.0",
   "scripts": {
     "dev": "vite",
+    "tsc:watch": "tsc --watch",
     "build": "tsc -p tsconfig.build.json && vite build",
     "preview": "vite preview",
     "lint": "concurrently --kill-others-on-fail \"npm:lint:*\"",
@@ -27,7 +28,7 @@
   "lint-staged": {
     "!(*config|demo).ts": [
       "eslint --max-warnings 0 --no-ignore",
-      "sh -c 'tsc -p tsconfig.json --noEmit'",
+      "sh -c 'tsc -p tsconfig.dev.json --noEmit'",
       "prettier --check --log-level=warn"
     ],
     "!(*config).(js|cjs|mjs)": [

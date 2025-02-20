@@ -8,8 +8,8 @@ describe('TextClip', () => {
   beforeEach(() => {
     textClip = new TextClip({
       id: 'test-text',
-      start: 0,
-      end: 5,
+      offset: 0,
+      duration: 5,
       text: 'Test Text',
     });
   });
@@ -27,8 +27,8 @@ describe('TextClip', () => {
     it('should create a text clip with custom position and size', () => {
       const customClip = new TextClip({
         id: 'test-text',
-        start: 0,
-        end: 5,
+        offset: 0,
+        duration: 5,
         text: 'Test Text',
         position: { left: 10, top: 20 },
         size: { width: 200, height: 150 },
@@ -45,8 +45,8 @@ describe('TextClip', () => {
     it('should create a text clip with custom style', () => {
       const customClip = new TextClip({
         id: 'test-text',
-        start: 0,
-        end: 5,
+        offset: 0,
+        duration: 5,
         text: 'Test Text',
         style: {
           fontFamily: 'Arial',

@@ -19,8 +19,8 @@ export const speedUpTest: ManualTestCase = {
     const countdownClip = new VideoClip({
       id: 'countdown',
       source: countdownSource,
-      start: 0,
-      end: 5.1,
+      offset: 0,
+      duration: 5.1,
       speed: 2,
     });
 

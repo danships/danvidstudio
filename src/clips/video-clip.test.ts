@@ -33,8 +33,8 @@ describe('VideoClip', () => {
     vi.clearAllMocks();
     videoClip = new VideoClip({
       id: 'test-video',
-      start: 0,
-      end: 5,
+      offset: 0,
+      duration: 5,
       source: mockVideoSource,
     });
   });
@@ -51,8 +51,8 @@ describe('VideoClip', () => {
     it('should create a video clip with custom position and size', () => {
       const customClip = new VideoClip({
         id: 'test-video',
-        start: 0,
-        end: 5,
+        offset: 0,
+        duration: 5,
         source: mockVideoSource,
         position: { left: 10, top: 20 },
         size: { width: 1280, height: 720 },
@@ -66,8 +66,8 @@ describe('VideoClip', () => {
     it('should create a video clip with custom speed and range', () => {
       const customClip = new VideoClip({
         id: 'test-video',
-        start: 0,
-        end: 5,
+        offset: 0,
+        duration: 5,
         source: mockVideoSource,
         speed: 2,
         range: { start: 1, end: 6 },
@@ -81,8 +81,8 @@ describe('VideoClip', () => {
       expect(() => {
         new VideoClip({
           id: 'test-video',
-          start: 0,
-          end: 5,
+          offset: 0,
+          duration: 5,
           source: mockVideoSource,
           range: { start: 6, end: 1 }, // Invalid range
         });

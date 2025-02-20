@@ -113,7 +113,7 @@ export class Timeline {
     for (const clip of track.getClips()) {
       const clipElement = this.createClipElement(clip);
       // Check if clip exceeds scene duration
-      if (clip.start + clip.getDuration() > sceneDuration) {
+      if (clip.getOffset() + clip.getDuration() > sceneDuration) {
         clipElement.classList.add('exceeds-duration');
       }
       trackElement.append(clipElement);

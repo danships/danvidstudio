@@ -4,23 +4,23 @@ import { concat } from '../utils/concat';
 
 export type ClipOptions = {
   id?: string | undefined;
-  start: number;
-  end: number;
+  offset: number;
+  duration: number;
   track?: Track | undefined;
   updated?: ((reason?: string) => void) | undefined;
 };
 
 export abstract class Clip extends WithId {
-  public start: number;
-  public end: number;
+  protected offset: number;
+  protected duration: number;
 
-  private track?: Track | undefined;
+  protected track?: Track | undefined;
   protected updated?: ((reason?: string) => void) | undefined;
   constructor(options: ClipOptions) {
     super(options.id);
 
-    this.start = options.start;
-    this.end = options.end;
+    this.offset = options.offset;
+    this.duration = options.duration;
     this.updated = options?.updated;
   }
 
@@ -34,18 +34,26 @@ export abstract class Clip extends WithId {
     return this;
   }
 
-  public setStart(start: number) {
-    this.start = start;
-    this.triggerUpdated('Start changed');
+  public setOffset(offset: number) {
+    this.offset = offset;
+    this.triggerUpdated('Offset changed');
   }
 
-  public setEnd(end: number) {
-    this.end = end;
-    this.triggerUpdated('End changed');
+  public setDuration(duration: number) {
+    this.duration = duration;
+    this.triggerUpdated('Duration changed');
   }
 
   public getDuration() {
-    return this.end - this.start;
+    return this.duration;
+  }
+
+  public getOffset() {
+    return this.offset;
+  }
+
+  public getEnd() {
+    return this.offset + this.duration;
   }
 
   protected getTrack() {
