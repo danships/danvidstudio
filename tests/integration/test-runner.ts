@@ -259,7 +259,7 @@ export class ManualTestRunner {
         return;
       }
     } else if (this.runAutomatic && this.composition) {
-      const duration = this.composition.duration;
+      const duration = this.composition.getDuration();
       // Waiting video duration to complete
       await new Promise((resolve) => setTimeout(resolve, duration * 1000));
     }

@@ -14,17 +14,15 @@ export class ExportManager {
     }
 
     logger.debug('ExportManager constructor called', {
-      width: composition.width,
-      height: composition.height,
-      fps: composition.fps,
-      duration: composition.duration,
+      width: composition.getSize().width,
+      height: composition.getSize().height,
+      fps: composition.getFps(),
+      duration: composition.getDuration(),
     });
 
     // Bind the composition to ensure methods don't lose context
-    this.composition = Object.create(composition, {
-      seek: { value: composition.seek.bind(composition) },
-    });
-    this.ready = this.composition.ready;
+    this.composition = composition;
+    this.ready = this.composition.waitForReady();
   }
 
   public async export(
@@ -46,10 +44,10 @@ export class ExportManager {
       }
 
       logger.debug('Creating encoder', {
-        width: this.composition.width,
-        height: this.composition.height,
-        fps: this.composition.fps,
-        duration: this.composition.duration,
+        width: this.composition.getSize().width,
+        height: this.composition.getSize().height,
+        fps: this.composition.getFps(),
+        duration: this.composition.getDuration(),
       });
 
       // Always use WebCodecsEncoder directly for now

@@ -1,9 +1,8 @@
 ## Simple todo
 
-- [ ] Run auto or manual in test:manual via an env variable instead of url parameter
-- [ ] Use top,left instead of x,y for cropping
 - [ ] Simplify API, add the ability to add a clip directly to a composition, or a clip to a scene, etc.
 - [ ] Merge start + end on a clip into a single property. Possible rename, it is not clear that that is on the track it self.
+- [ ] Add a check that coverage is never allowed to drop below the value that it was at the last commit.
 - [ ] Add jsdoc comments to the code
 - [ ] Reorder scenes, tracks, clips, etc.
 - [ ] Allow something like a backdrop to be added at the same level as a scene, so we don't need to add it to each scene.

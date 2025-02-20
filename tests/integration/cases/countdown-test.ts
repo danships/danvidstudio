@@ -30,8 +30,8 @@ export const countdownTest: ManualTestCase = {
         start: 10 - iter,
         end: 11 - iter,
         crop: {
-          x: 220 + offset,
-          y: 140 + offset,
+          left: 220 + offset,
+          top: 140 + offset,
           width: 640,
           height: 480,
         },

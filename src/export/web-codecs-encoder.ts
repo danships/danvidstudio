@@ -6,14 +6,6 @@ import type { CompositionVideoEncoder, ExportOptions, ProgressCallback } from '.
 import type { Composition } from '../composition/composition';
 import { logger } from '../utils/logger';
 
-interface EncoderProperties {
-  width: number;
-  height: number;
-  fps: number;
-  duration: number;
-  seek: (time: number) => void;
-}
-
 export class WebCodecsEncoder implements CompositionVideoEncoder {
   private readonly width: number;
   private readonly height: number;
@@ -22,24 +14,19 @@ export class WebCodecsEncoder implements CompositionVideoEncoder {
   private readonly seek: (time: number) => void;
   private renderer: WebGLRenderer | null = null;
 
-  constructor(source: Composition | EncoderProperties) {
-    if (!source || typeof source !== 'object') {
-      logger.error('Invalid source provided to WebCodecsEncoder');
-      throw new Error('Source is required');
-    }
-
+  constructor(composition: Composition) {
     logger.debug('WebCodecsEncoder constructor called', {
-      width: source.width,
-      height: source.height,
-      fps: source.fps,
-      duration: source.duration,
+      width: composition.getSize().width,
+      height: composition.getSize().height,
+      fps: composition.getFps(),
+      duration: composition.getDuration(),
     });
 
-    this.width = source.width;
-    this.height = source.height;
-    this.fps = source.fps;
-    this.duration = source.duration;
-    this.seek = source.seek;
+    this.width = composition.getSize().width;
+    this.height = composition.getSize().height;
+    this.fps = composition.getFps();
+    this.duration = composition.getDuration();
+    this.seek = (time: number) => composition.seek(time);
 
     void this.initRenderer();
   }

@@ -4,6 +4,7 @@ import { Application } from 'pixi.js';
 import { Scene, type SceneOptions } from './scene';
 import { ExportManager } from '../export/export-manager';
 import type { ExportOptions, ProgressCallback } from '../export/types';
+import type { Size } from '../types';
 import { generateUUID } from '../utils/generate-uuid';
 import { getDurationOfScenes } from '../utils/get-duration-of-scenes';
 import type { LogLevel } from '../utils/logger';
@@ -25,13 +26,12 @@ export class Composition {
   private scenes: Scene[] = [];
   private playerAttached = false;
 
-  public width: number = 1920;
-  public height: number = 1080;
-  public fps: number = 25;
+  private size: Size = { width: 1920, height: 1080 };
+  private fps: number = 25;
 
-  public ready: Promise<void>;
+  private ready: Promise<void>;
 
-  public duration: number = 0;
+  private duration: number = 0;
 
   private playStatus: {
     isPlaying: boolean;
@@ -61,8 +61,7 @@ export class Composition {
       logger.info('Creating composition');
     }
     if (options.size) {
-      this.width = options.size.width;
-      this.height = options.size.height;
+      this.size = options.size;
     }
     if (options.fps) {
       this.fps = Math.max(1, Math.min(120, options.fps)); // Clamp between 1 and 120 fps
@@ -73,12 +72,12 @@ export class Composition {
     this.app = app;
 
     this.ready = (async () => {
-      logger.debug('Initializing application', { width: this.width, height: this.height, fps: this.fps });
+      logger.debug('Initializing application', { width: this.size.width, height: this.size.height, fps: this.fps });
       await app.init({
         background: options.backgroundColor ?? '#000000',
         resolution: 1,
-        width: this.width,
-        height: this.height,
+        width: this.size.width,
+        height: this.size.height,
       });
 
       // Configure FPS settings on the ticker
@@ -95,6 +94,25 @@ export class Composition {
     this.ready.catch((error) => {
       logger.error('Failed to initialize composition:', error);
     });
+  }
+
+  public getSize() {
+    return this.size;
+  }
+
+  public setSize(size: Size) {
+    this.size = size;
+    this.app.screen.width = this.size.width;
+    this.app.screen.height = this.size.height;
+  }
+
+  public getFps() {
+    return this.fps;
+  }
+
+  public setFps(fps: number) {
+    this.fps = fps;
+    return this;
   }
 
   public static async create(options: CompositionOptions = {}) {
@@ -337,5 +355,13 @@ export class Composition {
 
   public getScenes() {
     return this.scenes;
+  }
+
+  public getDuration() {
+    return this.duration;
+  }
+
+  public waitForReady(): Promise<void> {
+    return this.ready;
   }
 }

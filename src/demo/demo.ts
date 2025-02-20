@@ -65,7 +65,7 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
     source: gridImage,
     start: 0,
     end: 1,
-    crop: { x: 512, y: 240, width: 640, height: 240 },
+    crop: { left: 512, top: 240, width: 640, height: 240 },
     position: { top: 100, left: 20 },
     size: { width: 320, height: 240 },
   });
@@ -85,7 +85,7 @@ function createPlainVideoScene(composition: Composition, video: VideoSource): Sc
     size: { width: 640, height: 480 },
     // speed: 2,
     // range: { start: 7, end: 15 },
-    crop: { x: 720, y: 720, width: 640, height: 480 },
+    crop: { left: 720, top: 720, width: 640, height: 480 },
   });
 
   plainVideoTrack.addClip(plainVideoClip);
@@ -534,7 +534,7 @@ async function initDemo() {
   });
 
   randomSeekButton.addEventListener('click', () => {
-    composition.seek(Math.random() * composition.duration);
+    composition.seek(Math.random() * composition.getDuration());
   });
 }
 
@@ -545,7 +545,7 @@ async function refreshComposition(sources: Record<string, ImageSource | VideoSou
 
   // Wait for composition to be ready before using it
   console.log('Waiting for new composition to be ready');
-  await newComposition.ready;
+  await newComposition.waitForReady();
 
   // Create enabled scenes in the specified order
   console.log('Creating enabled scenes');

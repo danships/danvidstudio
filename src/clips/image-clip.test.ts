@@ -68,7 +68,7 @@ describe('ImageClip', () => {
         start: 0,
         end: 5,
         source: mockImageSource,
-        crop: { x: 10, y: 10, width: 50, height: 50 },
+        crop: { left: 10, top: 10, width: 50, height: 50 },
       });
 
       const sprite = croppedClip._getContainer().children[0] as Sprite;

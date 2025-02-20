@@ -1,17 +1,13 @@
 import { Container, Rectangle, Sprite, Texture } from 'pixi.js';
 import { VisualClip, type VisualOptions } from '../base/visual-clip';
 import type { ImageSource } from '../sources/image-source';
+import type { Crop } from '../types';
 import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
 export type ImageClipOptions = VisualOptions & {
   source: ImageSource;
-  crop?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  crop?: Crop;
 };
 
 export class ImageClip extends VisualClip {
@@ -40,7 +36,7 @@ export class ImageClip extends VisualClip {
     this.texture = options.source._texture;
 
     if (options.crop) {
-      this.cropRectangle = new Rectangle(options.crop.x, options.crop.y, options.crop.width, options.crop.height);
+      this.cropRectangle = new Rectangle(options.crop.left, options.crop.top, options.crop.width, options.crop.height);
     }
 
     this.container = new Container();

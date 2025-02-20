@@ -34,50 +34,50 @@ describe('Composition', () => {
   describe('initialization', () => {
     it('should create a composition with default values', async () => {
       const defaultComposition = await Composition.create();
-      expect(defaultComposition.width).toBe(1920);
-      expect(defaultComposition.height).toBe(1080);
-      expect(defaultComposition.fps).toBe(25);
+      expect(defaultComposition.getSize().width).toBe(1920);
+      expect(defaultComposition.getSize().height).toBe(1080);
+      expect(defaultComposition.getFps()).toBe(25);
     });
 
     it('should create a composition with custom values', () => {
-      expect(composition.width).toBe(1920);
-      expect(composition.height).toBe(1080);
-      expect(composition.fps).toBe(30);
+      expect(composition.getSize().width).toBe(1920);
+      expect(composition.getSize().height).toBe(1080);
+      expect(composition.getFps()).toBe(30);
     });
   });
 
   describe('scene management', () => {
     it('should add scenes correctly', async () => {
-      await composition.ready;
+      await composition.waitForReady();
       const scene = composition.createScene({ duration: 5 });
       expect(scene).toBeDefined();
       expect(Scene).toHaveBeenCalled();
-      expect(composition['scenes']).toHaveLength(1);
-      expect(composition.duration).toBe(5);
+      expect(composition.getScenes()).toHaveLength(1);
+      expect(composition.getDuration()).toBe(5);
     });
 
     it('should remove scenes correctly', async () => {
-      await composition.ready;
+      await composition.waitForReady();
       const scene1 = composition.createScene({ duration: 5 });
       const scene2 = composition.createScene({ duration: 3 });
-      expect(composition['scenes']).toHaveLength(2);
-      expect(composition.duration).toBe(8);
+      expect(composition.getScenes()).toHaveLength(2);
+      expect(composition.getDuration()).toBe(8);
 
       // Remove one scene
       composition.removeScene(scene1);
-      expect(composition['scenes']).toHaveLength(1);
+      expect(composition.getScenes()).toHaveLength(1);
       expect(scene1.destroy).toHaveBeenCalled();
-      expect(composition['scenes'][0]).toBe(scene2);
-      expect(composition.duration).toBe(3);
+      expect(composition.getScenes()[0]).toBe(scene2);
+      expect(composition.getDuration()).toBe(3);
 
       // Try to remove non-existent scene (should not throw)
       composition.removeScene(scene1);
-      expect(composition['scenes']).toHaveLength(1);
-      expect(composition.duration).toBe(3);
+      expect(composition.getScenes()).toHaveLength(1);
+      expect(composition.getDuration()).toBe(3);
     });
 
     it('should handle active scene index when removing scenes', async () => {
-      await composition.ready;
+      await composition.waitForReady();
       const scene1 = composition.createScene({ duration: 5 });
       const scene2 = composition.createScene({ duration: 3 });
       const scene3 = composition.createScene({ duration: 4 });
@@ -102,7 +102,7 @@ describe('Composition', () => {
 
   describe('playback control', () => {
     it('should handle play/pause state correctly', async () => {
-      await composition.ready;
+      await composition.waitForReady();
 
       composition.play();
       expect(composition['playStatus'].isPlaying).toBe(true);
@@ -112,11 +112,11 @@ describe('Composition', () => {
     });
 
     it('should seek to correct time', async () => {
-      await composition.ready;
+      await composition.waitForReady();
       composition.createScene({ duration: 5 });
       composition.createScene({ duration: 5 });
 
-      composition.seek(7); // Seek to second scene
+      composition.seek(7); // Seek to 2nd scene
 
       expect(composition['playStatus'].currentTime).toBe(7);
       // We can't test container.visible directly as it's private, but we can verify the seek behavior
@@ -127,7 +127,7 @@ describe('Composition', () => {
 
   describe('time update events', () => {
     it('should notify listeners of time updates and handle removal correctly', async () => {
-      await composition.ready;
+      await composition.waitForReady();
       const listener = vi.fn();
 
       composition.createScene({ duration: 5 }); // Add a scene to have non-zero duration

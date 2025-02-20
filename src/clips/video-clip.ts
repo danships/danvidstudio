@@ -1,6 +1,7 @@
 import { Container, VideoSource as PixiVideoSource, Rectangle, Sprite, Texture } from 'pixi.js';
 import { VisualClip, type VisualOptions } from '../base/visual-clip';
 import type { VideoSource } from '../sources/video-source';
+import type { Crop } from '../types';
 import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
@@ -11,12 +12,7 @@ export type VideoClipOptions = VisualOptions & {
     start: number; // Start time in the source video (in seconds)
     end: number; // End time in the source video (in seconds)
   };
-  crop?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  crop?: Crop;
 };
 
 export class VideoClip extends VisualClip {
@@ -106,7 +102,7 @@ export class VideoClip extends VisualClip {
       () => {
         // Apply initial crop if provided
         if (options.crop) {
-          this.setCrop(options.crop.x, options.crop.y, options.crop.width, options.crop.height);
+          this.setCrop(options.crop.left, options.crop.top, options.crop.width, options.crop.height);
         }
 
         // Start preloading frames
