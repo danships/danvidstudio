@@ -25,8 +25,9 @@ export class Scene extends WithId {
   private container: Container;
 
   private updated?: ((reason?: string) => void) | undefined;
+  private composition: Composition;
 
-  constructor({ updateDuration, setContainer }: CompositionDetails, options: SceneOptions) {
+  constructor({ updateDuration, setContainer, composition }: CompositionDetails, options: SceneOptions) {
     super(options.id);
 
     this.duration = options.duration;
@@ -37,6 +38,7 @@ export class Scene extends WithId {
     setContainer(this.container);
 
     this.updated = options.updated;
+    this.composition = composition;
   }
 
   public render(time: number) {
@@ -118,5 +120,11 @@ export class Scene extends WithId {
 
   public _getContainer() {
     return this.container;
+  }
+
+  public setDisplayOrder(displayOrder: number) {
+    this.composition.setSceneDisplayOrder(this, displayOrder);
+    this.updated?.(`Display order set ${displayOrder}`);
+    return this;
   }
 }

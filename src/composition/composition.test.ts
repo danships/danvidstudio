@@ -26,6 +26,32 @@ vi.mock('./scene', () => {
   };
 });
 
+// Mock Application class
+vi.mock('pixi.js', async () => {
+  const actual = await vi.importActual('pixi.js');
+  return {
+    ...actual,
+    Application: vi.fn().mockImplementation(() => ({
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      init: vi.fn().mockResolvedValue(undefined),
+      screen: { width: 1920, height: 1080 },
+      ticker: {
+        maxFPS: 25,
+        add: vi.fn().mockReturnThis(),
+        stop: vi.fn(),
+        start: vi.fn(),
+      },
+      stage: {
+        addChild: vi.fn(),
+        setChildIndex: vi.fn(),
+        children: [],
+      },
+      render: vi.fn(),
+      canvas: document.createElement('canvas'),
+    })),
+  };
+});
+
 // Mock Track class
 vi.mock('./track', () => {
   return {
@@ -199,6 +225,17 @@ describe('Composition', () => {
       composition.addClipToComposition(mockClip);
       expect(composition['compositionTrack']).toBe(track);
       expect(track?.addClip).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('scene display order', () => {
+    it('should set scene display order correctly', async () => {
+      await composition.waitForReady();
+      const scene = composition.createScene({ duration: 5 });
+      const container = scene._getContainer();
+
+      composition.setSceneDisplayOrder(scene, 2);
+      expect(composition['app'].stage.setChildIndex).toHaveBeenCalledWith(container, 2);
     });
   });
 });

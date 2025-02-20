@@ -126,4 +126,17 @@ describe('Track', () => {
       expect(track['clips']).toHaveLength(0);
     });
   });
+
+  describe('display order', () => {
+    it('should set display order correctly', () => {
+      const mockSetChildIndex = vi.fn();
+      const mockParent = new Container();
+      mockParent.setChildIndex = mockSetChildIndex;
+      const trackContainer = track['container'];
+      trackContainer.parent = mockParent;
+
+      track.setDisplayOrder(2);
+      expect(mockSetChildIndex).toHaveBeenCalledWith(trackContainer, 2);
+    });
+  });
 });

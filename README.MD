@@ -2,9 +2,9 @@
 
 ### Highest priority
 
-- [ ] Add a check that coverage is never allowed to drop below the value that it was at the last commit.
 - [ ] Add jsdoc comments to the code
-- [ ] Reorder scenes, tracks, clips, etc.
+  - [ ] Use https://www.webdoclabs.com/guides/index.html
+- [ ] Remove scenes, tracks, clips, etc.
 
 ### Next priority
 

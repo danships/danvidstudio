@@ -87,4 +87,10 @@ export class Track extends WithId {
   public getClips() {
     return this.clips;
   }
+
+  public setDisplayOrder(displayOrder: number) {
+    this.container.parent.setChildIndex(this.container, displayOrder);
+    this.updated?.(`display order set ${displayOrder}`);
+    return this;
+  }
 }

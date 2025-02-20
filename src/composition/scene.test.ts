@@ -1,5 +1,6 @@
 import { Container } from 'pixi.js';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import type { Composition } from './composition';
 import { Scene } from './scene';
 import { Track } from './track';
 import { Clip } from '../base/clip';
@@ -129,6 +130,29 @@ describe('Scene', () => {
 
       // Verify the original clip is returned
       expect(addedClip).toBe(mockClip);
+    });
+  });
+
+  describe('display order', () => {
+    it('should set display order through composition', () => {
+      const mockSetSceneDisplayOrder = vi.fn();
+      const mockComposition = {
+        setSceneDisplayOrder: mockSetSceneDisplayOrder,
+      } as unknown as Composition;
+
+      scene = new Scene(
+        {
+          composition: mockComposition,
+          updateDuration: mockUpdateDuration,
+          setContainer: mockSetContainer,
+        },
+        {
+          duration: 5,
+        }
+      );
+
+      scene.setDisplayOrder(2);
+      expect(mockSetSceneDisplayOrder).toHaveBeenCalledWith(scene, 2);
     });
   });
 });

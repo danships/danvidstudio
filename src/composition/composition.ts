@@ -393,4 +393,10 @@ export class Composition {
   public getCompositionTrack() {
     return this.compositionTrack;
   }
+
+  public setSceneDisplayOrder(scene: Scene, displayOrder: number) {
+    this.app.stage.setChildIndex(scene._getContainer(), displayOrder);
+    this.updateTriggered();
+    return this;
+  }
 }

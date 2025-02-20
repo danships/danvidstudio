@@ -16,5 +16,5 @@
     "declarationDir": "out",
     "noImplicitOverride": false // With it, we cannot have VisualClip function overriden in specific clips, without also adding them to Clip, which makes no sense.
   },
-  "include": ["src", "*.config.ts"]
+  "include": ["src", "*.config.ts", "tests"]
 }

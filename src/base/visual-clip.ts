@@ -55,4 +55,10 @@ export abstract class VisualClip extends Clip {
 
   public abstract _getContainer(): Container;
   public abstract render(time: number): void;
+
+  public setDisplayOrder(displayOrder: number) {
+    this._getContainer().parent.setChildIndex(this._getContainer(), displayOrder);
+    this.triggerUpdated(`Display order set ${displayOrder}`);
+    return this;
+  }
 }

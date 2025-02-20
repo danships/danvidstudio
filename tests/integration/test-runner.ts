@@ -3,15 +3,18 @@ import { PixiTree } from './pixi-tree';
 import { Timeline } from './timeline';
 import type { Composition } from '../..';
 
+type RunParameters = {
+  composition?: Composition;
+  confirm: (text: string) => boolean;
+  sleep: (duration: number) => Promise<void>;
+};
+
 export interface ManualTestCase {
   key: string;
   name: string;
   description: string;
   expectedBehavior: string;
-  run?: (parameters: {
-    confirm: (text: string) => boolean;
-    sleep: (duration: number) => Promise<void>;
-  }) => Promise<boolean> | boolean;
+  run?: (parameters: RunParameters) => Promise<boolean> | boolean;
   setup: (
     testContainer: HTMLDivElement,
     controlsContainer: HTMLDivElement
@@ -246,10 +249,14 @@ export class ManualTestRunner {
 
     if (test.run) {
       try {
-        await test.run({
+        const runParameters: RunParameters = {
           confirm: (text: string) => this.confirm(text),
           sleep: (duration: number) => new Promise((resolve) => setTimeout(resolve, duration)),
-        });
+        };
+        if (this.composition) {
+          runParameters.composition = this.composition;
+        }
+        await test.run(runParameters);
       } catch (error) {
         console.error('Error running test', error);
         if (!this.runAutomatic) {
