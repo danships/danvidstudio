@@ -19,3 +19,4 @@
 ### Low priority
 
 - [ ] Fix the automatic playwright integration test recording
+- [ ] Figure out how to automate with Playwright

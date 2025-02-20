@@ -21,7 +21,8 @@
     "test:integration": "INTEGRATION_TEST=true vite",
     "test:integration:automatic": "INTEGRATION_TEST=true VITE_APP_AUTOMATIC=true vite",
     "test:integration:record": "tsx scripts/test-integration-recording.ts",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage && tsx scripts/check-coverage-threshold.ts",
+    "test:coverage:threshold": "tsx scripts/check-coverage-threshold.ts",
     "prepare": "husky"
   },
   "prettier": "eslint-config-daangemist/.prettierrc",
@@ -35,8 +36,11 @@
       "eslint --max-warnings 0 --no-ignore",
       "prettier --check --log-level=warn"
     ],
-    "*.(json|md)": [
-      "prettier --check --loglevel=warn"
+    "!(*.coverage-threshold).json": [
+      "prettier --check --log-level=warn"
+    ],
+    "*.md": [
+      "prettier --check --log-level=warn"
     ]
   },
   "dependencies": {

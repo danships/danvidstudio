@@ -1,4 +1,4 @@
-npm test
+npm run test:coverage
 # build it and then run lint:tsc, so that the tests/integration source code also gets validated on the latest types
 npm run build
 npm run lint:tsc
