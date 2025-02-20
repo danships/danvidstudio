@@ -329,6 +329,11 @@ export class VideoClip extends VisualClip {
     return minDiff <= this.preloadInterval / 1000 ? nearest : null;
   }
 
+  public remove(): void {
+    // Call parent's remove method
+    super.remove();
+  }
+
   public destroy(): void {
     // Clear frame buffer
     for (const texture of this.frameBuffer.values()) {

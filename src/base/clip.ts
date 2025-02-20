@@ -70,4 +70,5 @@ export abstract class Clip extends WithId {
 
   public abstract destroy(): void;
   public abstract render(time: number): void;
+  public abstract remove(): void;
 }

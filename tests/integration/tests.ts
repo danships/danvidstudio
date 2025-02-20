@@ -9,6 +9,7 @@ declare global {
 import { basicSceneTest } from './cases/basic-scene-test';
 import { countdownTest } from './cases/countdown-test';
 import { displayOrderTest } from './cases/display-order-test';
+import { removalTest } from './cases/removal-test';
 import { simpleVideoTest } from './cases/simple-video-test';
 import { speedUpTest } from './cases/speed-up-test';
 import { ManualTestRunner } from './test-runner';
@@ -21,6 +22,7 @@ export async function runManualTests() {
   runner.addTest(countdownTest);
   runner.addTest(speedUpTest);
   runner.addTest(displayOrderTest);
+  runner.addTest(removalTest);
 
   // read testId from the query search params
   const url = new URL(globalThis.location.href);

@@ -11,15 +11,22 @@ class TestClip extends Clip {
   public render(): void {
     // Implementation for testing
   }
+  public remove(): void {
+    // Implementation for testing
+  }
 }
 
 describe('Clip', () => {
   let clipOptions: ClipOptions;
   let clip: TestClip;
   let mockUpdated: (reason?: string) => void;
+  let mockTrack: Track;
 
   beforeEach(() => {
     mockUpdated = vi.fn();
+    mockTrack = {
+      removeClip: vi.fn(),
+    } as unknown as Track;
     clipOptions = {
       id: 'test-clip',
       offset: 0,
@@ -72,10 +79,15 @@ describe('Clip', () => {
     });
 
     it('should set and get track', () => {
-      const mockTrack = {} as Track;
       clip.setTrack(mockTrack);
-
       expect(clip['getTrack']()).toBe(mockTrack);
+    });
+
+    it('should be able to remove itself from track', () => {
+      const mockRemove = vi.spyOn(clip, 'remove');
+      clip.setTrack(mockTrack);
+      clip.remove();
+      expect(mockRemove).toHaveBeenCalled();
     });
   });
 

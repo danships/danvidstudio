@@ -14,6 +14,10 @@ class TestClip extends Clip {
   public render(): void {
     // Implementation for testing
   }
+
+  public remove(): void {
+    // Implementation for testing
+  }
 }
 
 // Mock Track class
@@ -107,6 +111,41 @@ describe('Scene', () => {
 
       // Verify container was destroyed with children
       expect(containerDestroySpy).toHaveBeenCalledWith({ children: true });
+    });
+
+    it('should remove itself from composition', () => {
+      const mockRemoveScene = vi.fn();
+      const mockComposition = {
+        removeScene: mockRemoveScene,
+      } as unknown as Composition;
+
+      scene = new Scene(
+        {
+          composition: mockComposition,
+          updateDuration: mockUpdateDuration,
+          setContainer: mockSetContainer,
+        },
+        {
+          duration: 5,
+        }
+      );
+
+      // Add some tracks to test they get removed
+      const track1 = scene.addTrack({});
+      const track2 = scene.addTrack({});
+
+      // Mock track remove methods
+      track1.remove = vi.fn();
+      track2.remove = vi.fn();
+
+      scene.remove();
+
+      // Verify tracks were removed
+      expect(track1.remove).toHaveBeenCalled();
+      expect(track2.remove).toHaveBeenCalled();
+
+      // Verify scene was removed from composition
+      expect(mockRemoveScene).toHaveBeenCalledWith(scene);
     });
   });
 

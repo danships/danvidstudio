@@ -127,4 +127,13 @@ export class Scene extends WithId {
     this.updated?.(`Display order set ${displayOrder}`);
     return this;
   }
+
+  public remove() {
+    for (const track of this.tracks) {
+      track.remove();
+    }
+
+    // Remove from composition
+    this.composition.removeScene(this);
+  }
 }

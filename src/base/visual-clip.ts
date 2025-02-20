@@ -53,12 +53,18 @@ export abstract class VisualClip extends Clip {
     return this.size;
   }
 
-  public abstract _getContainer(): Container;
-  public abstract render(time: number): void;
+  public remove(): void {
+    this._getContainer().removeFromParent();
+    const track = this.getTrack();
+    track.removeClip(this);
+  }
 
   public setDisplayOrder(displayOrder: number) {
     this._getContainer().parent.setChildIndex(this._getContainer(), displayOrder);
     this.triggerUpdated(`Display order set ${displayOrder}`);
     return this;
   }
+
+  public abstract _getContainer(): Container;
+  public abstract render(time: number): void;
 }

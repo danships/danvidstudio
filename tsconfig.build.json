@@ -3,5 +3,6 @@
   "exclude": ["**/*.test.ts", "**/test/**", "src/demo/**", "*.config.ts"],
   "compilerOptions": {
     "types": ["node"]
-  }
+  },
+  "include": ["src"]
 }

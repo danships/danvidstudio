@@ -14,6 +14,7 @@ export class Track extends WithId {
   private clips: Clip[] = [];
   private container: Container;
   private updated?: ((reason?: string) => void) | undefined;
+  private scene?: Scene | null = null;
 
   constructor(parent: Container | Scene, trackOptions: TrackOptions) {
     super(trackOptions.id);
@@ -23,6 +24,7 @@ export class Track extends WithId {
       parent.addChild(this.container);
     } else {
       parent._getContainer().addChild(this.container);
+      this.scene = parent;
     }
   }
 
@@ -92,5 +94,17 @@ export class Track extends WithId {
     this.container.parent.setChildIndex(this.container, displayOrder);
     this.updated?.(`display order set ${displayOrder}`);
     return this;
+  }
+
+  public remove() {
+    // Remove all clips first
+    for (const clip of this.clips) {
+      clip.remove();
+    }
+
+    this.container.removeFromParent();
+
+    // Remove from scene if we have one
+    this.scene?.removeTrack(this);
   }
 }

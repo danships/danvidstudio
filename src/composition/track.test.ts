@@ -1,7 +1,8 @@
 import { Container } from 'pixi.js';
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Scene } from './scene';
 import { Track } from './track';
+import { Clip, type ClipOptions } from '../base/clip';
 import type { VisualClip } from '../base/visual-clip';
 
 // Mock VisualClip
@@ -14,33 +15,55 @@ const createMockClip = () =>
     _setUpdated: vi.fn(),
     _getContainer: () => mockClipContainer,
     render: vi.fn(),
+    remove: vi.fn(),
   }) as unknown as VisualClip;
+
+class TestClip extends Clip {
+  private destroySpy = vi.fn();
+  private removeSpy = vi.fn();
+
+  constructor(options: Partial<ClipOptions> = {}) {
+    super({ offset: 0, duration: options.duration ?? 5 });
+  }
+
+  public destroy(): void {
+    this.destroySpy();
+  }
+
+  public remove(): void {
+    this.removeSpy();
+  }
+
+  public render(): void {}
+
+  // Expose spy functions for assertions
+  public getDestroySpy() {
+    return this.destroySpy;
+  }
+
+  public getRemoveSpy() {
+    return this.removeSpy;
+  }
+}
 
 describe('Track', () => {
   let track: Track;
   let mockScene: Scene;
   let mockParentContainer: Container;
-  let mockUpdated: Mock;
+  let mockUpdated: ReturnType<typeof vi.fn>;
+  let mockUpdateDuration: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockParentContainer = new Container();
     mockUpdated = vi.fn();
+    mockUpdateDuration = vi.fn();
 
     // Create a proper mock Scene
     mockScene = {
-      id: 'mock-scene',
-      tracks: [],
-      _getContainer: () => mockParentContainer,
-      render: vi.fn(),
-      setVisible: vi.fn(),
-      addTrack: vi.fn(),
       removeTrack: vi.fn(),
-      setDuration: vi.fn(),
-      getDuration: vi.fn(),
-      _setUpdated: vi.fn(),
-      destroy: vi.fn(),
-      getTracks: vi.fn(),
-      addClip: vi.fn(),
+      container: mockParentContainer,
+      updateDuration: mockUpdateDuration,
+      _getContainer: () => mockParentContainer,
     } as unknown as Scene;
 
     track = new Track(mockScene, {
@@ -100,30 +123,56 @@ describe('Track', () => {
 
   describe('cleanup', () => {
     it('should destroy all clips and container', () => {
-      const clip1 = createMockClip();
-      const clip2 = createMockClip();
-
+      // Add some clips
+      const clip1 = new TestClip({});
+      const clip2 = new TestClip({});
       track.addClip(clip1);
       track.addClip(clip2);
 
-      const containerDestroySpy = vi.spyOn(track['container'], 'destroy');
+      // Get container to spy on its destroy method
+      const container = track['container'];
+      const containerDestroySpy = vi.spyOn(container, 'destroy');
 
+      // Destroy track
       track.destroy();
 
-      expect(clip1.destroy).toHaveBeenCalled();
-      expect(clip2.destroy).toHaveBeenCalled();
+      // Verify all clips were destroyed
+      expect(clip1.getDestroySpy()).toHaveBeenCalled();
+      expect(clip2.getDestroySpy()).toHaveBeenCalled();
       expect(track['clips']).toHaveLength(0);
+
+      // Verify container was destroyed with children
       expect(containerDestroySpy).toHaveBeenCalledWith({ children: true });
     });
 
-    it('should clear clips array after destruction', () => {
-      const mockClip = createMockClip();
-      track.addClip(mockClip);
+    it('should remove itself from scene', () => {
+      const mockRemoveTrack = vi.fn();
+      const mockSceneRemove = {
+        removeTrack: mockRemoveTrack,
+        _getContainer: () => mockParentContainer,
+      } as unknown as Scene;
 
-      track.destroy();
+      track = new Track(mockSceneRemove, {
+        updated: mockUpdated,
+      });
 
-      // Access private clips array for testing
-      expect(track['clips']).toHaveLength(0);
+      // Add some clips to test they get removed
+      const clip1 = new TestClip({});
+      const clip2 = new TestClip({});
+      track.addClip(clip1);
+      track.addClip(clip2);
+
+      // Mock container's removeFromParent method
+      track['container'].removeFromParent = vi.fn();
+
+      track.remove();
+
+      // Verify clips were removed
+      expect(clip1.getRemoveSpy()).toHaveBeenCalled();
+      expect(clip2.getRemoveSpy()).toHaveBeenCalled();
+
+      // Verify track was removed from scene
+      expect(mockRemoveTrack).toHaveBeenCalledWith(track);
     });
   });
 
