@@ -2,6 +2,8 @@
 import type { Ticker } from 'pixi.js';
 import { Application } from 'pixi.js';
 import { Scene, type SceneOptions } from './scene';
+import { Track } from './track';
+import type { Clip } from '../base/clip';
 import { ExportManager } from '../export/export-manager';
 import type { ExportOptions, ProgressCallback } from '../export/types';
 import type { Size } from '../types';
@@ -28,10 +30,10 @@ export class Composition {
 
   private size: Size = { width: 1920, height: 1080 };
   private fps: number = 25;
+  private duration: number = 0;
 
   private ready: Promise<void>;
-
-  private duration: number = 0;
+  private compositionTrack: Track | null = null;
 
   private playStatus: {
     isPlaying: boolean;
@@ -323,6 +325,7 @@ export class Composition {
     }
 
     this.scenes[this.playStatus.activeSceneIndex]?.render(this.playStatus.currentTime - sceneTimeElapsed);
+    this.compositionTrack?.render(this.playStatus.currentTime);
   }
 
   public async export(options: ExportOptions, onProgress?: ProgressCallback): Promise<Blob> {
@@ -363,5 +366,31 @@ export class Composition {
 
   public waitForReady(): Promise<void> {
     return this.ready;
+  }
+
+  /**
+   * Creates a new scene and adds the clip to it
+   * @returns The newly created scene containing the clip
+   */
+  public addClipWithScene(clip: Clip, sceneDuration: number): Scene {
+    const scene = this.createScene({ duration: sceneDuration });
+    scene.addClip(clip);
+    return scene;
+  }
+
+  /**
+   * Adds a clip to the composition-wide track that spans the entire duration
+   * @returns The added clip
+   */
+  public addClipToComposition(clip: Clip): this {
+    if (!this.compositionTrack) {
+      this.compositionTrack = new Track(this.app.stage, { updated: () => this.updateTriggered() });
+    }
+    this.compositionTrack.addClip(clip);
+    return this;
+  }
+
+  public getCompositionTrack() {
+    return this.compositionTrack;
   }
 }

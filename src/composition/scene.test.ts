@@ -2,6 +2,18 @@ import { Container } from 'pixi.js';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { Scene } from './scene';
 import { Track } from './track';
+import { Clip } from '../base/clip';
+
+// Create a concrete implementation of Clip for testing
+class TestClip extends Clip {
+  public destroy(): void {
+    // Implementation for testing
+  }
+
+  public render(): void {
+    // Implementation for testing
+  }
+}
 
 // Mock Track class
 vi.mock('./track', () => {
@@ -10,6 +22,7 @@ vi.mock('./track', () => {
       id: 'mock-track',
       destroy: vi.fn(),
       render: vi.fn(),
+      addClip: vi.fn(),
     })),
   };
 });
@@ -93,6 +106,29 @@ describe('Scene', () => {
 
       // Verify container was destroyed with children
       expect(containerDestroySpy).toHaveBeenCalledWith({ children: true });
+    });
+  });
+
+  describe('clip management', () => {
+    it('should add clip by creating a new track and adding the clip to it', () => {
+      const mockClip = new TestClip({
+        offset: 0,
+        duration: 5,
+      });
+      const addedClip = scene.addClip(mockClip);
+
+      // Verify a new track was created
+      expect(scene.tracks).toHaveLength(1);
+
+      // Since we verified tracks.length is 1, we know this exists
+      const track = scene.tracks[0]!;
+      expect(track).toBeDefined();
+
+      // Verify the clip was added to the track
+      expect(track.addClip).toHaveBeenCalledWith(mockClip);
+
+      // Verify the original clip is returned
+      expect(addedClip).toBe(mockClip);
     });
   });
 });

@@ -18,16 +18,32 @@ const createMockClip = () =>
 
 describe('Track', () => {
   let track: Track;
-  let mockScene: Mock;
+  let mockScene: Scene;
   let mockParentContainer: Container;
   let mockUpdated: Mock;
 
   beforeEach(() => {
-    mockScene = vi.fn();
     mockParentContainer = new Container();
     mockUpdated = vi.fn();
 
-    track = new Track(mockScene as unknown as Scene, mockParentContainer, {
+    // Create a proper mock Scene
+    mockScene = {
+      id: 'mock-scene',
+      tracks: [],
+      _getContainer: () => mockParentContainer,
+      render: vi.fn(),
+      setVisible: vi.fn(),
+      addTrack: vi.fn(),
+      removeTrack: vi.fn(),
+      setDuration: vi.fn(),
+      getDuration: vi.fn(),
+      _setUpdated: vi.fn(),
+      destroy: vi.fn(),
+      getTracks: vi.fn(),
+      addClip: vi.fn(),
+    } as unknown as Scene;
+
+    track = new Track(mockScene, {
       updated: mockUpdated,
     });
   });

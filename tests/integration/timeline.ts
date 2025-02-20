@@ -25,15 +25,30 @@ export class Timeline {
         padding: 10px;
         font-family: Arial, sans-serif;
       }
+      .composition-track {
+        background: #333;
+        padding: 8px;
+        border-radius: 4px;
+        margin-top: 10px;
+        width: fit-content;
+      }
+      .composition-track-header {
+        font-weight: bold;
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #555;
+      }
       .scenes-container {
         display: flex;
         gap: 10px;
+        width: fit-content;
       }
       .scene {
         background: #3a3a3a;
         padding: 8px;
         border-radius: 4px;
         min-width: 200px;
+        flex-shrink: 0;
       }
       .scene-header {
         font-weight: bold;
@@ -76,12 +91,35 @@ export class Timeline {
     const scenesContainer = document.createElement('div');
     scenesContainer.className = 'scenes-container';
 
-    // TODO getScenes() somehow does not work
+    // Render scenes first
     for (const [index, scene] of this.composition['scenes'].entries()) {
       scenesContainer.append(this.createSceneElement(scene, index));
     }
 
     timelineContainer.append(scenesContainer);
+
+    // Add composition track at the bottom if it exists
+    const compositionTrack = this.composition.getCompositionTrack();
+    if (compositionTrack) {
+      const compositionTrackElement = document.createElement('div');
+      compositionTrackElement.className = 'composition-track';
+
+      const compositionTrackHeader = document.createElement('div');
+      compositionTrackHeader.className = 'composition-track-header';
+      compositionTrackHeader.textContent = 'Composition Track';
+      compositionTrackElement.append(compositionTrackHeader);
+
+      const trackElement = this.createTrackElement(compositionTrack, this.composition.getDuration());
+      compositionTrackElement.append(trackElement);
+
+      // Set the width to match scenes container
+      requestAnimationFrame(() => {
+        compositionTrackElement.style.width = `${scenesContainer.offsetWidth}px`;
+      });
+
+      timelineContainer.append(compositionTrackElement);
+    }
+
     this.container.append(timelineContainer);
   }
 

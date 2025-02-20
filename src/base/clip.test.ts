@@ -8,6 +8,9 @@ class TestClip extends Clip {
   public destroy(): void {
     // Implementation for testing
   }
+  public render(): void {
+    // Implementation for testing
+  }
 }
 
 describe('Clip', () => {

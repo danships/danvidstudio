@@ -1,12 +1,15 @@
+import { Container } from 'pixi.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Composition } from './composition';
 import { Scene } from './scene';
+import type { Clip } from '../base/clip';
 
 // Mock Scene class
 vi.mock('./scene', () => {
   return {
     Scene: vi.fn().mockImplementation((context, options) => {
       const duration = options.duration;
+      const container = new Container();
       // Call updateDuration with initial duration
       context.updateDuration(0, duration);
 
@@ -16,8 +19,23 @@ vi.mock('./scene', () => {
         getDuration: () => duration,
         setVisible: vi.fn(),
         render: vi.fn(),
+        addClip: vi.fn(),
+        _getContainer: () => container,
       };
     }),
+  };
+});
+
+// Mock Track class
+vi.mock('./track', () => {
+  return {
+    Track: vi.fn().mockImplementation(() => ({
+      id: 'mock-track',
+      destroy: vi.fn(),
+      render: vi.fn(),
+      addClip: vi.fn(),
+      getClips: () => [],
+    })),
   };
 });
 
@@ -151,6 +169,36 @@ describe('Composition', () => {
       composition.seek(3);
       expect(listener).not.toHaveBeenCalled();
       expect(newListener).toHaveBeenCalledWith(3, 5);
+    });
+  });
+
+  describe('clip management', () => {
+    it('should add clip as scene correctly', async () => {
+      await composition.waitForReady();
+      const mockClip = { id: 'test-clip', duration: 5 } as unknown as Clip;
+      const scene = composition.addClipWithScene(mockClip, 5);
+
+      expect(scene).toBeDefined();
+      expect(Scene).toHaveBeenCalled();
+      expect(composition.getScenes()).toHaveLength(1);
+      expect(composition.getDuration()).toBe(5);
+      expect(scene.addClip).toHaveBeenCalledWith(mockClip);
+    });
+
+    it('should add clip to composition track', async () => {
+      await composition.waitForReady();
+      const mockClip = { id: 'test-clip', duration: 5 } as unknown as Clip;
+
+      // First call should create the composition track
+      composition.addClipToComposition(mockClip);
+      const track = composition['compositionTrack'];
+      expect(track).toBeDefined();
+      expect(track?.addClip).toHaveBeenCalledWith(mockClip);
+
+      // Second call should use the existing track
+      composition.addClipToComposition(mockClip);
+      expect(composition['compositionTrack']).toBe(track);
+      expect(track?.addClip).toHaveBeenCalledTimes(2);
     });
   });
 });

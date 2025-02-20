@@ -11,13 +11,14 @@ export const basicSceneTest: ManualTestCase = {
     const composition = await Composition.create({ size: { width: 640, height: 480 }, backgroundColor: '#FF0000' });
 
     const backdropSource = await ImageSource.create('/backdrop.jpg');
-    const backdropTextClip = new ImageClip({
-      id: 'backdrop-text',
+    const backdropClip = new ImageClip({
+      id: 'backdrop',
       source: backdropSource,
       offset: 0,
-      duration: 2,
+      duration: 3.5,
       position: { left: -200, top: -200 },
     });
+    composition.addClipToComposition(backdropClip);
 
     const textClip = new TextClip({
       id: 'intro-text',
@@ -34,7 +35,6 @@ export const basicSceneTest: ManualTestCase = {
     });
     const textScene = composition.createScene({ duration: 1.5 });
     const textTrack = textScene.addTrack({});
-    textTrack.addClip(backdropTextClip);
     textTrack.addClip(textClip);
 
     const clipper = await ImageSource.create('/clipper.jpg');
@@ -49,14 +49,6 @@ export const basicSceneTest: ManualTestCase = {
     const scene = composition.createScene({ duration: 2 });
     const track = scene.addTrack({});
 
-    const backdropImageClip = new ImageClip({
-      id: 'backdrop-image',
-      source: backdropSource,
-      offset: 0,
-      duration: 2,
-      position: { left: -200, top: -200 },
-    });
-    track.addClip(backdropImageClip);
     track.addClip(imageClip);
 
     composition.attachPlayer(testContainer);

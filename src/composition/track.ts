@@ -1,6 +1,7 @@
 import { Container } from 'pixi.js';
 import type { Scene } from './scene';
-import type { VisualClip } from '../base/visual-clip';
+import type { Clip } from '../base/clip';
+import { VisualClip } from '../base/visual-clip';
 import { WithId } from '../base/with-id';
 import { concat } from '../utils/concat';
 
@@ -10,24 +11,26 @@ export type TrackOptions = {
 };
 
 export class Track extends WithId {
-  private clips: VisualClip[] = [];
+  private clips: Clip[] = [];
   private container: Container;
   private updated?: ((reason?: string) => void) | undefined;
 
-  constructor(
-    public scene: Scene,
-    parent: Container,
-    trackOptions: TrackOptions
-  ) {
+  constructor(parent: Container | Scene, trackOptions: TrackOptions) {
     super(trackOptions.id);
     this.container = new Container();
     this.updated = trackOptions.updated;
-    parent.addChild(this.container);
+    if (parent instanceof Container) {
+      parent.addChild(this.container);
+    } else {
+      parent._getContainer().addChild(this.container);
+    }
   }
 
-  public addClip(clip: VisualClip) {
+  public addClip(clip: Clip) {
     this.clips.push(clip);
-    this.container.addChild(clip._getContainer());
+    if (clip instanceof VisualClip) {
+      this.container.addChild(clip._getContainer());
+    }
     clip.setTrack(this);
     if (this.updated) {
       clip._setUpdated(this.updated);

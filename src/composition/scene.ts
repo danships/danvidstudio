@@ -2,6 +2,7 @@ import { Container } from 'pixi.js';
 import type { Composition } from './composition';
 import type { TrackOptions } from './track';
 import { Track } from './track';
+import type { Clip } from '../base/clip';
 import { WithId } from '../base/with-id';
 
 export type SceneOptions = {
@@ -53,7 +54,7 @@ export class Scene extends WithId {
   }
 
   public addTrack(options: TrackOptions) {
-    const track = new Track(this, this.container, { ...options, updated: this.updated });
+    const track = new Track(this, { ...options, updated: this.updated });
     this.tracks.push(track);
     this.updated?.(`Track added ${track.id}`);
     return track;
@@ -102,5 +103,20 @@ export class Scene extends WithId {
 
   public getTracks() {
     return this.tracks;
+  }
+
+  /**
+   * Add a clip to the scene. Will create a new track automatically.
+   * @param clip - The clip to add.
+   * @returns The clip that was added.
+   */
+  public addClip(clip: Clip) {
+    const track = this.addTrack({});
+    track.addClip(clip);
+    return clip;
+  }
+
+  public _getContainer() {
+    return this.container;
   }
 }
