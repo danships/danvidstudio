@@ -1,5 +1,6 @@
 import { WithId } from './with-id';
 import type { Track } from '../composition/track';
+import type { ClipType } from '../types';
 import { concat } from '../utils/concat';
 
 export type ClipOptions = {
@@ -55,6 +56,8 @@ export abstract class Clip extends WithId {
   public getEnd() {
     return this.offset + this.duration;
   }
+
+  public abstract getType(): ClipType;
 
   protected getTrack() {
     if (!this.track) {

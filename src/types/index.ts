@@ -14,3 +14,9 @@ export type Crop = {
   width: number;
   height: number;
 };
+
+export enum ClipType {
+  IMAGE = 'image',
+  VIDEO = 'video',
+  TEXT = 'text',
+}

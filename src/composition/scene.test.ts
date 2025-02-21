@@ -4,6 +4,7 @@ import type { Composition } from './composition';
 import { Scene } from './scene';
 import { Track } from './track';
 import { Clip } from '../base/clip';
+import { ClipType } from '../types';
 
 // Create a concrete implementation of Clip for testing
 class TestClip extends Clip {
@@ -17,6 +18,10 @@ class TestClip extends Clip {
 
   public remove(): void {
     // Implementation for testing
+  }
+
+  public getType(): ClipType {
+    return ClipType.IMAGE; // We need an implementation for this, since its abstract in the base class
   }
 }
 

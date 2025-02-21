@@ -3,6 +3,7 @@ import type { Container, Sprite } from 'pixi.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { VideoClip, type VideoClipOptions } from './video-clip';
 import type { VideoSource } from '../sources/video-source';
+import { ClipType } from '../types';
 
 // Mock video element
 const createMockVideoElement = () => {
@@ -253,5 +254,11 @@ describe('VideoClip', () => {
     videoClip['seekedListener']();
     // @ts-ignore - accessing private property for testing
     expect(videoClip['pendingSeek']).toBe(false);
+  });
+
+  describe('getType', () => {
+    it('should return ClipType.VIDEO', () => {
+      expect(videoClip.getType()).toBe(ClipType.VIDEO);
+    });
   });
 });

@@ -1,7 +1,7 @@
 import { Container, Rectangle, Sprite, Texture } from 'pixi.js';
 import { VisualClip, type VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip';
 import type { ImageSource } from '../sources/image-source';
-import type { Crop } from '../types';
+import { ClipType, type Crop } from '../types';
 import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
@@ -109,6 +109,10 @@ export class ImageClip extends VisualClip {
   public render(time: number): void {
     const clipTime = time - this.offset;
     this.container.visible = clipTime >= 0 && clipTime <= this.duration;
+  }
+
+  public getType(): ClipType {
+    return ClipType.IMAGE;
   }
 
   public destroy(): void {

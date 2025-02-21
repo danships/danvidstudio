@@ -2,7 +2,7 @@ import { Container, VideoSource as PixiVideoSource, Rectangle, Sprite, Texture }
 import type { VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip';
 import { VisualClip } from '../base/visual-clip';
 import type { VideoSource } from '../sources/video-source';
-import type { Crop } from '../types';
+import { ClipType, type Crop } from '../types';
 import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
@@ -43,6 +43,10 @@ export class VideoClip extends VisualClip {
   private preloadInterval: number = 1000 / 30; // Preload interval in ms (30fps)
 
   public ready: boolean = false;
+
+  public getType(): ClipType {
+    return ClipType.VIDEO;
+  }
 
   constructor(options: VideoClipOptions) {
     super({

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { VisualClip } from './visual-clip';
 import type { Track } from '../composition/track';
 import type { Position, Size } from '../types';
+import { ClipType } from '../types';
 
 // Create a concrete implementation for testing
 class TestVisualClip extends VisualClip {
@@ -24,6 +25,10 @@ class TestVisualClip extends VisualClip {
 
   public render() {
     // No-op for testing
+  }
+
+  public getType(): ClipType {
+    return ClipType.IMAGE; // We need an implementation for this, since its abstract in the base class
   }
 
   public destroy() {

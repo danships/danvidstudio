@@ -3,6 +3,7 @@ import { Container, Rectangle, Sprite } from 'pixi.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ImageClip } from './image-clip';
 import type { ImageSource } from '../sources/image-source';
+import { ClipType } from '../types';
 
 // Mock Texture and ImageSource
 const mockTexture = {
@@ -164,6 +165,12 @@ describe('ImageClip', () => {
       expect(spriteDestroySpy).toHaveBeenCalled();
       expect(textureDestroySpy).not.toHaveBeenCalled(); // Texture should not be destroyed when no crop
       expect(containerDestroySpy).toHaveBeenCalledWith({ children: true });
+    });
+  });
+
+  describe('getType', () => {
+    it('should return ClipType.IMAGE', () => {
+      expect(imageClip.getType()).toBe(ClipType.IMAGE);
     });
   });
 });

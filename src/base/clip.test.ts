@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ClipOptions } from './clip';
 import { Clip } from './clip';
 import type { Track } from '../composition/track';
+import { ClipType } from '../types';
 
 // Concrete implementation of abstract Clip class for testing
 class TestClip extends Clip {
@@ -13,6 +14,9 @@ class TestClip extends Clip {
   }
   public remove(): void {
     // Implementation for testing
+  }
+  public getType(): ClipType {
+    return ClipType.IMAGE; // We need an implementation for this, since its abstract in the base class
   }
 }
 

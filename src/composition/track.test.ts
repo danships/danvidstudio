@@ -4,6 +4,7 @@ import type { Scene } from './scene';
 import { Track } from './track';
 import { Clip, type ClipOptions } from '../base/clip';
 import type { VisualClip } from '../base/visual-clip';
+import { ClipType } from '../types';
 
 // Mock VisualClip
 const mockClipContainer = new Container();
@@ -16,6 +17,7 @@ const createMockClip = () =>
     _getContainer: () => mockClipContainer,
     render: vi.fn(),
     remove: vi.fn(),
+    getType: vi.fn(),
   }) as unknown as VisualClip;
 
 class TestClip extends Clip {
@@ -35,6 +37,10 @@ class TestClip extends Clip {
   }
 
   public render(): void {}
+
+  public getType(): ClipType {
+    return ClipType.IMAGE; // We need an implementation for this, since its abstract in the base class
+  }
 
   // Expose spy functions for assertions
   public getDestroySpy() {

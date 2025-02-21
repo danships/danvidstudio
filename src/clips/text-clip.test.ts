@@ -1,6 +1,7 @@
 import { Container, Text as PixiText } from 'pixi.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TextClip } from './text-clip';
+import { ClipType } from '../types';
 
 describe('TextClip', () => {
   let textClip: TextClip;
@@ -8,9 +9,15 @@ describe('TextClip', () => {
   beforeEach(() => {
     textClip = new TextClip({
       id: 'test-text',
+      text: 'Test Text',
       offset: 0,
       duration: 5,
-      text: 'Test Text',
+    });
+  });
+
+  describe('getType', () => {
+    it('should return ClipType.TEXT', () => {
+      expect(textClip.getType()).toBe(ClipType.TEXT);
     });
   });
 

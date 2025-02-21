@@ -1,7 +1,7 @@
 import type { Size, TextStyleFontWeight } from 'pixi.js';
 import { Container, Text as PixiText, TextStyle } from 'pixi.js';
 import { VisualClip, type VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip';
-import type { Position } from '../types';
+import { ClipType, type Position } from '../types';
 import { logger } from '../utils/logger';
 
 export type TextClipOptions = VisualClipOptionsWithoutOffsetDuration & {
@@ -181,6 +181,10 @@ export class TextClip extends VisualClip {
     this.updateTextSize();
 
     return this;
+  }
+
+  public getType(): ClipType {
+    return ClipType.TEXT;
   }
 
   public _getContainer(): Container {
