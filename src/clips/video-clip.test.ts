@@ -41,7 +41,7 @@ const createMockVideoElement = () => {
 const createMockVideoSource = (duration: number = 10) => {
   const videoElement = createMockVideoElement();
   return {
-    duration,
+    getDuration: () => duration,
     getVideoElement: vi.fn().mockReturnValue(videoElement),
   } as unknown as VideoSource;
 };
@@ -288,13 +288,19 @@ describe('VideoClip', () => {
     const returnedSource = videoClip.getSource();
 
     expect(returnedSource).toBe(customSource);
-    expect(returnedSource.duration).toBe(15);
+    expect(returnedSource.getDuration()).toBe(15);
     expect(returnedSource.getVideoElement).toBeDefined();
   });
 
   describe('getType', () => {
     it('should return ClipType.VIDEO', () => {
       expect(videoClip.getType()).toBe(ClipType.VIDEO);
+    });
+  });
+
+  describe('getDuration', () => {
+    it('should return the duration of the video', () => {
+      expect(videoClip.getDuration()).toBe(15);
     });
   });
 });

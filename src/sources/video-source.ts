@@ -4,7 +4,7 @@ import type { Size } from '../types';
 export class VideoSource extends WithId {
   protected readonly width: number;
   protected readonly height: number;
-  public readonly duration: number;
+  protected readonly duration: number;
   private videoElement: HTMLVideoElement;
 
   private constructor(
@@ -87,5 +87,9 @@ export class VideoSource extends WithId {
       width: this.width,
       height: this.height,
     };
+  }
+
+  public getDuration(): number {
+    return this.duration;
   }
 }

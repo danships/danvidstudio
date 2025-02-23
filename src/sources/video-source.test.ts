@@ -66,7 +66,7 @@ describe('VideoSource', () => {
         width: mockVideoElement.videoWidth,
         height: mockVideoElement.videoHeight,
       });
-      expect(source.duration).toBe(mockVideoElement.duration);
+      expect(source.getDuration()).toBe(mockVideoElement.duration);
       expect(mockCreateObjectURL).not.toHaveBeenCalled();
       expect(mockVideoElement.src).toBe(url);
     });
@@ -83,7 +83,7 @@ describe('VideoSource', () => {
         width: mockVideoElement.videoWidth,
         height: mockVideoElement.videoHeight,
       });
-      expect(source.duration).toBe(mockVideoElement.duration);
+      expect(source.getDuration()).toBe(mockVideoElement.duration);
       expect(mockCreateObjectURL).toHaveBeenCalledWith(mockBlob);
       expect(mockVideoElement.src).toBe(mockObjectUrl);
     });
@@ -100,7 +100,7 @@ describe('VideoSource', () => {
         width: mockVideoElement.videoWidth,
         height: mockVideoElement.videoHeight,
       });
-      expect(source.duration).toBe(mockVideoElement.duration);
+      expect(source.getDuration()).toBe(mockVideoElement.duration);
       expect(mockCreateObjectURL).toHaveBeenCalledWith(mockFile);
       expect(mockVideoElement.src).toBe(mockObjectUrl);
     });

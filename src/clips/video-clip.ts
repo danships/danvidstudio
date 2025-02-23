@@ -52,7 +52,7 @@ export class VideoClip extends VisualClip {
     super({
       id: options.id,
       offset: options.offset ?? 0,
-      duration: options.duration ?? options.source.duration,
+      duration: options.duration ?? options.source.getDuration(),
       position: options.position,
       size: options.size,
       track: options.track,
@@ -65,7 +65,7 @@ export class VideoClip extends VisualClip {
     // Initialize and validate source range
     this.range = {
       start: Math.max(0, options.range?.start ?? 0),
-      end: Math.min(options.source.duration, options.range?.end ?? options.source.duration),
+      end: Math.min(options.source.getDuration(), options.range?.end ?? options.source.getDuration()),
     };
 
     if (this.range.start >= this.range.end) {
@@ -361,5 +361,9 @@ export class VideoClip extends VisualClip {
       this.videoSource.destroy();
     }
     this.container.destroy();
+  }
+
+  public getDuration(): number {
+    return this.duration;
   }
 }

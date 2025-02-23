@@ -22,6 +22,11 @@ export const fileOrBlobTest: ManualTestCase = {
     const videoBlob = await videoResponse.blob();
     const videoSource = await VideoSource.create(videoBlob);
 
+    const watermark = await fetch('/logo.svg');
+    const watermarkBlob = await watermark.blob();
+    const watermarkObjectUrl = URL.createObjectURL(watermarkBlob);
+    const watermarkSource = await ImageSource.create(watermarkObjectUrl);
+
     const scene = composition.createScene({ duration: 5 });
     scene.addClip(new ImageClip({ source: imageSource, duration: 5 }));
     scene.addClip(
@@ -40,6 +45,14 @@ export const fileOrBlobTest: ManualTestCase = {
         position: { top: 340, left: 500 },
       })
     );
+    scene.addClip(
+      new ImageClip({
+        source: watermarkSource,
+        duration: 5,
+        size: { width: 128, height: 128 },
+        position: { top: 340, left: 20 },
+      })
+    );
 
     composition.attachPlayer(testContainer);
 
@@ -51,7 +64,7 @@ export const fileOrBlobTest: ManualTestCase = {
     await sleep(2000);
 
     return confirm(
-      'Do you see the countdown video on a colored background and the clipper image in the bottom right corner?'
+      'Do you see the countdown video on a colored background, logo in the bottom left and the clipper image in the bottom right corner?'
     );
   },
 };

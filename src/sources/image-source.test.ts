@@ -43,6 +43,58 @@ describe('ImageSource', () => {
       expect(Assets.load).toHaveBeenCalledWith(url);
     });
 
+    it('should create an ImageSource from a blob URL string', async () => {
+      const mockBlobUrl = 'blob:http://localhost:3000/1234-5678';
+      const mockTexture = {
+        width: 1920,
+        height: 1080,
+        destroy: vi.fn(),
+      } as unknown as Texture;
+
+      vi.mocked(Texture.from).mockReturnValue(mockTexture);
+
+      // Create a spy for Image
+      const mockImage = {
+        addEventListener: vi.fn((event, handler) => {
+          if (event === 'load') {
+            setTimeout(() => handler(), 0);
+          }
+        }),
+        src: '',
+      };
+      vi.spyOn(globalThis, 'Image').mockImplementation(() => mockImage as unknown as HTMLImageElement);
+
+      const imageSource = await ImageSource.create(mockBlobUrl);
+
+      expect(imageSource).toBeInstanceOf(ImageSource);
+      expect(imageSource._texture).toBe(mockTexture);
+      expect(imageSource.width).toBe(mockTexture.width);
+      expect(imageSource.height).toBe(mockTexture.height);
+      // Should not create or revoke object URL since we're passing a blob URL directly
+      expect(mockCreateObjectURL).not.toHaveBeenCalled();
+      expect(mockRevokeObjectURL).not.toHaveBeenCalled();
+    });
+
+    it('should handle errors when creating from a blob URL string', async () => {
+      const mockBlobUrl = 'blob:http://localhost:3000/1234-5678';
+
+      // Create a spy for Image that triggers error
+      const mockImage = {
+        addEventListener: vi.fn((event, handler) => {
+          if (event === 'error') {
+            setTimeout(() => handler(), 0);
+          }
+        }),
+        src: '',
+      };
+      vi.spyOn(globalThis, 'Image').mockImplementation(() => mockImage as unknown as HTMLImageElement);
+
+      await expect(ImageSource.create(mockBlobUrl)).rejects.toThrow('Failed to load image');
+      // Should not create or revoke object URL since we're passing a blob URL directly
+      expect(mockCreateObjectURL).not.toHaveBeenCalled();
+      expect(mockRevokeObjectURL).not.toHaveBeenCalled();
+    });
+
     it('should create an ImageSource from a Blob', async () => {
       const mockBlob = new Blob(['test'], { type: 'image/png' });
       const mockObjectUrl = 'blob:test-url';

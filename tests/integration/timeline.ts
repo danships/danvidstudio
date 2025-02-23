@@ -168,7 +168,7 @@ export class Timeline {
     clipInfo.className = 'clip-info';
 
     const clipType = document.createElement('span');
-    clipType.textContent = `Clip ${clip.id}/${clip.constructor.name.replace('Clip', '')}`;
+    clipType.textContent = `Clip ${clip.id}/${clip.getType()}`;
 
     const clipDuration = document.createElement('span');
     clipDuration.textContent = `${clip.getDuration().toFixed(1)}s`;

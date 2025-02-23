@@ -45,6 +45,7 @@
   "files": [
     "out/danvidstudio.es.js",
     "out/danvidstudio.cjs.js",
+    "out/*.js.map",
     "out/index.d.ts"
   ],
   "prettier": "eslint-config-daangemist/.prettierrc",

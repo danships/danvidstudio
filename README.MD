@@ -19,6 +19,7 @@
 - [ ] Automatic centering around a center point, or top left
 - [ ] Free (pixi) operations, such as rotate, alpha, scale, etc.
 - [ ] Rename size to dimensions?
+- [ ] Make scene duration optional; make it auto size to the longest clip?
 
 ### Low priority
 
