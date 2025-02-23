@@ -7,8 +7,8 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'DanVidStudio',
-      fileName: 'danvidstudio',
-      formats: ['es'],
+      fileName: (format) => `danvidstudio.${format}.js`,
+      formats: ['es', 'cjs'],
     },
     outDir: 'out',
     rollupOptions: {
@@ -24,6 +24,7 @@ export default defineConfig({
     dts({
       exclude: ['**/*.test.ts', '**/test/**', 'src/demo/**', 'tests/**'],
       tsconfigPath: 'tsconfig.build.json',
+      rollupTypes: true,
     }),
   ],
   server: {

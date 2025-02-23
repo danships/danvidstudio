@@ -1,9 +1,26 @@
 {
   "name": "danvidstudio",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
-  "main": "out/danvidstudio.js",
-  "types": "out/index.d.ts",
+  "main": "./out/danvidstudio.cjs.js",
+  "module": "./out/danvidstudio.es.js",
+  "types": "./out/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./out/danvidstudio.es.js",
+      "require": "./out/danvidstudio.cjs.js",
+      "types": "./out/index.d.ts"
+    }
+  },
+  "author": "debuggingdan",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danships/danvidstudio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/danships/danvidstudio/issues"
+  },
+  "homepage": "https://github.com/danships/danvidstudio#readme",
   "license": "MPL-2.0",
   "scripts": {
     "dev": "vite",
@@ -25,6 +42,11 @@
     "test:coverage:threshold": "tsx scripts/check-coverage-threshold.ts",
     "prepare": "husky"
   },
+  "files": [
+    "out/danvidstudio.es.js",
+    "out/danvidstudio.cjs.js",
+    "out/index.d.ts"
+  ],
   "prettier": "eslint-config-daangemist/.prettierrc",
   "lint-staged": {
     "!(*config|demo).ts": [

@@ -1,0 +1,46 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Extract version from tag and update package.json
+        run: |
+          VERSION=${{ github.event.release.tag_name }}
+          VERSION=${VERSION#v} # Remove leading "v" if present
+          echo "Setting package.json version to $VERSION"
+          jq --arg v "$VERSION" '.version = $v' package.json > package.tmp.json && mv package.tmp.json package.json
+
+      - name: Build package
+        run: npm run build
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [[ "${{ github.event.release.tag_name }}" =~ .*-(alpha|beta|rc).* ]]; then
+            TAG_TYPE=$(echo "${{ github.event.release.tag_name }}" | grep -o '(alpha|beta|rc)')
+            echo "NPM_TAG=$TAG_TYPE" >> $GITHUB_ENV
+          else
+            echo "NPM_TAG=latest" >> $GITHUB_ENV
+          fi
+
+      - name: Publish to npm
+        run: npm publish --tag $NPM_TAG
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
