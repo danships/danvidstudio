@@ -2,10 +2,6 @@
 
 ### Highest priority
 
-- [ ] (Automated) npm release
-  - [ ] https://chatgpt.com/share/67b826fa-b088-8011-9e0d-50e059fcf3d2
-  - [ ] esm + commonjs build
-- [ ] Add support for File|Blob on a source
 - [ ] Add badges (npm, license) to the README
 - [ ] Fill in the readme
 
@@ -13,6 +9,7 @@
 
 - [ ] Add jsdoc comments to the code
   - [ ] Use https://www.webdoclabs.com/guides/index.html
+- [ ] Add codesandbox example(s)
 - [ ] Improve 1x video playback
   - [ ] by using the pixi.js VideoResource
   - [ ] Preload frames exactly on the fps of the composition

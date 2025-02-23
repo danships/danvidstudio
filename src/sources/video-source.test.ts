@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { VideoSource } from './video-source';
 
 // Mock URL global
+const mockCreateObjectURL = vi.fn();
 const mockRevokeObjectURL = vi.fn();
 globalThis.URL = {
+  createObjectURL: mockCreateObjectURL,
   revokeObjectURL: mockRevokeObjectURL,
 } as unknown as typeof globalThis.URL;
 
@@ -42,15 +44,46 @@ describe('VideoSource', () => {
   });
 
   describe('create', () => {
-    it('should create a VideoSource instance with correct properties', async () => {
+    it('should create a VideoSource instance from URL with correct properties', async () => {
       const url = 'test-video.mp4';
       const source = await VideoSource.create(url);
 
       expect(source).toBeInstanceOf(VideoSource);
-      expect(source.url).toBe(url);
       expect(source.width).toBe(mockVideoElement.videoWidth);
       expect(source.height).toBe(mockVideoElement.videoHeight);
       expect(source.duration).toBe(mockVideoElement.duration);
+      expect(mockCreateObjectURL).not.toHaveBeenCalled();
+      expect(mockVideoElement.src).toBe(url);
+    });
+
+    it('should create a VideoSource instance from Blob with correct properties', async () => {
+      const mockBlob = new Blob(['test'], { type: 'video/mp4' });
+      const mockObjectUrl = 'blob:test-url';
+      mockCreateObjectURL.mockReturnValue(mockObjectUrl);
+
+      const source = await VideoSource.create(mockBlob);
+
+      expect(source).toBeInstanceOf(VideoSource);
+      expect(source.width).toBe(mockVideoElement.videoWidth);
+      expect(source.height).toBe(mockVideoElement.videoHeight);
+      expect(source.duration).toBe(mockVideoElement.duration);
+      expect(mockCreateObjectURL).toHaveBeenCalledWith(mockBlob);
+      expect(mockVideoElement.src).toBe(mockObjectUrl);
+    });
+
+    it('should create a VideoSource instance from File with correct properties', async () => {
+      const mockFile = new File(['test'], 'test.mp4', { type: 'video/mp4' });
+      const mockObjectUrl = 'blob:test-url';
+      mockCreateObjectURL.mockReturnValue(mockObjectUrl);
+
+      const source = await VideoSource.create(mockFile);
+
+      expect(source).toBeInstanceOf(VideoSource);
+      expect(source.width).toBe(mockVideoElement.videoWidth);
+      expect(source.height).toBe(mockVideoElement.videoHeight);
+      expect(source.duration).toBe(mockVideoElement.duration);
+      expect(mockCreateObjectURL).toHaveBeenCalledWith(mockFile);
+      expect(mockVideoElement.src).toBe(mockObjectUrl);
     });
 
     it('should set correct video element properties', async () => {
@@ -87,34 +120,27 @@ describe('VideoSource', () => {
   });
 
   describe('destroy', () => {
-    it('should properly clean up video resources', async () => {
-      const url = 'test-video.mp4';
-      const source = await VideoSource.create(url);
-      const videoElement = source.getVideoElement();
+    it('should properly clean up video resources with object URL', async () => {
+      const mockBlob = new Blob(['test'], { type: 'video/mp4' });
+      const mockObjectUrl = 'blob:test-url';
+      mockCreateObjectURL.mockReturnValue(mockObjectUrl);
 
-      // Set a source URL to test revocation
-      videoElement.src = 'blob:test-url';
-
+      const source = await VideoSource.create(mockBlob);
       source.destroy();
 
-      expect(videoElement.pause).toHaveBeenCalled();
-      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:test-url');
-      expect(videoElement.remove).toHaveBeenCalled();
+      expect(mockVideoElement.pause).toHaveBeenCalled();
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith(mockObjectUrl);
+      expect(mockVideoElement.remove).toHaveBeenCalled();
     });
 
-    it('should handle destroy when video has no source URL', async () => {
+    it('should properly clean up video resources with HTTP URL', async () => {
       const url = 'test-video.mp4';
       const source = await VideoSource.create(url);
-      const videoElement = source.getVideoElement();
-
-      // Clear the source URL
-      videoElement.src = '';
-
       source.destroy();
 
-      expect(videoElement.pause).toHaveBeenCalled();
-      expect(mockRevokeObjectURL).not.toHaveBeenCalled(); // Should not try to revoke when no URL
-      expect(videoElement.remove).toHaveBeenCalled();
+      expect(mockVideoElement.pause).toHaveBeenCalled();
+      expect(mockRevokeObjectURL).not.toHaveBeenCalled(); // Should not try to revoke when using HTTP URL
+      expect(mockVideoElement.remove).toHaveBeenCalled();
     });
   });
 });

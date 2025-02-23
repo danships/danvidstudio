@@ -7,11 +7,11 @@ export class VideoSource extends WithId {
   private videoElement: HTMLVideoElement;
 
   private constructor(
-    public readonly url: string,
     width: number,
     height: number,
     duration: number,
-    videoElement: HTMLVideoElement
+    videoElement: HTMLVideoElement,
+    private objectUrl: string | null
   ) {
     super();
     this.width = width;
@@ -26,7 +26,7 @@ export class VideoSource extends WithId {
     this.videoElement.preload = 'auto';
   }
 
-  public static async create(url: string): Promise<VideoSource> {
+  public static async create(url: string | File | Blob): Promise<VideoSource> {
     // Create video element to get metadata
     const video = document.createElement('video');
     video.muted = true;
@@ -34,8 +34,11 @@ export class VideoSource extends WithId {
     video.preload = 'auto';
     video.crossOrigin = 'anonymous'; // Enable CORS for video loading
 
+    const objectUrl = typeof url === 'string' ? null : URL.createObjectURL(url);
+    const httpUrl = typeof url === 'string' ? url : null;
+
     // Create object URL for the blob
-    video.src = url;
+    video.src = objectUrl ?? httpUrl ?? ''; // '' should never happen
 
     // Wait for metadata and first frame to load
     await new Promise<void>((resolve, reject) => {
@@ -61,7 +64,7 @@ export class VideoSource extends WithId {
       );
     });
 
-    const source = new VideoSource(url, video.videoWidth, video.videoHeight, video.duration, video);
+    const source = new VideoSource(video.videoWidth, video.videoHeight, video.duration, video, objectUrl);
 
     return source;
   }
@@ -72,9 +75,9 @@ export class VideoSource extends WithId {
 
   public destroy(): void {
     this.videoElement.pause();
-    if (this.videoElement.src) {
-      URL.revokeObjectURL(this.videoElement.src);
-    }
     this.videoElement.remove();
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+    }
   }
 }
