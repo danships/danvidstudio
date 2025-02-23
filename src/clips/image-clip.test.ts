@@ -21,8 +21,7 @@ const mockTexture = {
 
 const mockImageSource: ImageSource = {
   _texture: mockTexture,
-  width: 100,
-  height: 100,
+  getSize: () => ({ width: 100, height: 100 }),
   destroy: vi.fn(),
 };
 
@@ -203,8 +202,7 @@ describe('ImageClip', () => {
 
       const customSource: ImageSource = {
         _texture: customTexture,
-        width: 200,
-        height: 150,
+        getSize: () => ({ width: 200, height: 150 }),
         destroy: vi.fn(),
       };
 
@@ -217,8 +215,9 @@ describe('ImageClip', () => {
 
       const returnedSource = customClip.getSource();
       expect(returnedSource).toBe(customSource);
-      expect(returnedSource.width).toBe(200);
-      expect(returnedSource.height).toBe(150);
+      const size = returnedSource.getSize();
+      expect(size.width).toBe(200);
+      expect(size.height).toBe(150);
       expect(returnedSource._texture).toBe(customTexture);
     });
 

@@ -38,8 +38,9 @@ describe('ImageSource', () => {
 
       expect(imageSource).toBeInstanceOf(ImageSource);
       expect(imageSource._texture).toBe(mockTexture);
-      expect(imageSource.width).toBe(mockTexture.width);
-      expect(imageSource.height).toBe(mockTexture.height);
+      const size = imageSource.getSize();
+      expect(size.width).toBe(mockTexture.width);
+      expect(size.height).toBe(mockTexture.height);
       expect(Assets.load).toHaveBeenCalledWith(url);
     });
 
@@ -68,8 +69,9 @@ describe('ImageSource', () => {
 
       expect(imageSource).toBeInstanceOf(ImageSource);
       expect(imageSource._texture).toBe(mockTexture);
-      expect(imageSource.width).toBe(mockTexture.width);
-      expect(imageSource.height).toBe(mockTexture.height);
+      const size = imageSource.getSize();
+      expect(size.width).toBe(mockTexture.width);
+      expect(size.height).toBe(mockTexture.height);
       // Should not create or revoke object URL since we're passing a blob URL directly
       expect(mockCreateObjectURL).not.toHaveBeenCalled();
       expect(mockRevokeObjectURL).not.toHaveBeenCalled();
@@ -122,8 +124,9 @@ describe('ImageSource', () => {
 
       expect(imageSource).toBeInstanceOf(ImageSource);
       expect(imageSource._texture).toBe(mockTexture);
-      expect(imageSource.width).toBe(mockTexture.width);
-      expect(imageSource.height).toBe(mockTexture.height);
+      const size = imageSource.getSize();
+      expect(size.width).toBe(mockTexture.width);
+      expect(size.height).toBe(mockTexture.height);
       expect(mockCreateObjectURL).toHaveBeenCalledWith(mockBlob);
       expect(mockRevokeObjectURL).toHaveBeenCalledWith(mockObjectUrl);
     });
@@ -155,8 +158,9 @@ describe('ImageSource', () => {
 
       expect(imageSource).toBeInstanceOf(ImageSource);
       expect(imageSource._texture).toBe(mockTexture);
-      expect(imageSource.width).toBe(mockTexture.width);
-      expect(imageSource.height).toBe(mockTexture.height);
+      const size = imageSource.getSize();
+      expect(size.width).toBe(mockTexture.width);
+      expect(size.height).toBe(mockTexture.height);
       expect(mockCreateObjectURL).toHaveBeenCalledWith(mockFile);
       expect(mockRevokeObjectURL).toHaveBeenCalledWith(mockObjectUrl);
     });
