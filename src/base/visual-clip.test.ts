@@ -2,7 +2,7 @@ import { Container } from 'pixi.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { VisualClip } from './visual-clip';
 import type { Track } from '../composition/track';
-import type { Position, Size } from '../types';
+import type { Size } from '../types';
 import { ClipType } from '../types';
 
 // Create a concrete implementation for testing
@@ -58,14 +58,13 @@ describe('VisualClip', () => {
   });
 
   it('should update position', () => {
-    const newPosition: Position = { left: 30, top: 40 };
-    clip.setPosition(newPosition);
-    expect(clip.getPosition()).toEqual(newPosition);
+    clip.setPosition(30, 40);
+    expect(clip.getPosition()).toEqual({ left: 30, top: 40 });
   });
 
   it('should update size', () => {
     const newSize: Size = { width: 300, height: 400 };
-    clip.setSize(newSize);
+    clip.setSize(newSize.width, newSize.height);
     expect(clip.getSize()).toEqual(newSize);
   });
 

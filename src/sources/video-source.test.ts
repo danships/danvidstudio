@@ -11,22 +11,33 @@ globalThis.URL = {
 } as unknown as typeof globalThis.URL;
 
 describe('VideoSource', () => {
-  let mockVideoElement: HTMLVideoElement;
+  interface MockVideoElement extends HTMLVideoElement {
+    _videoWidth: number;
+    _videoHeight: number;
+  }
+
+  let mockVideoElement: MockVideoElement;
 
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
 
-    // Create a mock video element
-    mockVideoElement = {
+    // Create a mock video element with getters for read-only properties
+    const mockElement = {
       muted: false,
       playsInline: false,
       loop: true,
       preload: '',
       crossOrigin: null,
       src: '',
-      videoWidth: 1920,
-      videoHeight: 1080,
+      get videoWidth() {
+        return this._videoWidth;
+      },
+      get videoHeight() {
+        return this._videoHeight;
+      },
+      _videoWidth: 1920,
+      _videoHeight: 1080,
       duration: 10,
       currentTime: 0,
       pause: vi.fn(),
@@ -37,7 +48,9 @@ describe('VideoSource', () => {
           setTimeout(handler, 0);
         }
       }),
-    } as unknown as HTMLVideoElement;
+    };
+
+    mockVideoElement = mockElement as unknown as MockVideoElement;
 
     // Mock document.createElement
     vi.spyOn(document, 'createElement').mockImplementation(() => mockVideoElement);
@@ -49,8 +62,10 @@ describe('VideoSource', () => {
       const source = await VideoSource.create(url);
 
       expect(source).toBeInstanceOf(VideoSource);
-      expect(source.width).toBe(mockVideoElement.videoWidth);
-      expect(source.height).toBe(mockVideoElement.videoHeight);
+      expect(source.getSize()).toEqual({
+        width: mockVideoElement.videoWidth,
+        height: mockVideoElement.videoHeight,
+      });
       expect(source.duration).toBe(mockVideoElement.duration);
       expect(mockCreateObjectURL).not.toHaveBeenCalled();
       expect(mockVideoElement.src).toBe(url);
@@ -64,8 +79,10 @@ describe('VideoSource', () => {
       const source = await VideoSource.create(mockBlob);
 
       expect(source).toBeInstanceOf(VideoSource);
-      expect(source.width).toBe(mockVideoElement.videoWidth);
-      expect(source.height).toBe(mockVideoElement.videoHeight);
+      expect(source.getSize()).toEqual({
+        width: mockVideoElement.videoWidth,
+        height: mockVideoElement.videoHeight,
+      });
       expect(source.duration).toBe(mockVideoElement.duration);
       expect(mockCreateObjectURL).toHaveBeenCalledWith(mockBlob);
       expect(mockVideoElement.src).toBe(mockObjectUrl);
@@ -79,8 +96,10 @@ describe('VideoSource', () => {
       const source = await VideoSource.create(mockFile);
 
       expect(source).toBeInstanceOf(VideoSource);
-      expect(source.width).toBe(mockVideoElement.videoWidth);
-      expect(source.height).toBe(mockVideoElement.videoHeight);
+      expect(source.getSize()).toEqual({
+        width: mockVideoElement.videoWidth,
+        height: mockVideoElement.videoHeight,
+      });
       expect(source.duration).toBe(mockVideoElement.duration);
       expect(mockCreateObjectURL).toHaveBeenCalledWith(mockFile);
       expect(mockVideoElement.src).toBe(mockObjectUrl);
@@ -141,6 +160,43 @@ describe('VideoSource', () => {
       expect(mockVideoElement.pause).toHaveBeenCalled();
       expect(mockRevokeObjectURL).not.toHaveBeenCalled(); // Should not try to revoke when using HTTP URL
       expect(mockVideoElement.remove).toHaveBeenCalled();
+    });
+  });
+
+  describe('getSize', () => {
+    it('should return correct size from video dimensions', async () => {
+      const source = await VideoSource.create('test-video.mp4');
+      const size = source.getSize();
+
+      expect(size).toEqual({
+        width: mockVideoElement.videoWidth,
+        height: mockVideoElement.videoHeight,
+      });
+    });
+
+    it('should maintain size after video operations', async () => {
+      const source = await VideoSource.create('test-video.mp4');
+      const initialSize = source.getSize();
+
+      // Perform some operations
+      source.getVideoElement().currentTime = 5;
+
+      const finalSize = source.getSize();
+      expect(finalSize).toEqual(initialSize);
+    });
+
+    it('should return correct size for different video dimensions', async () => {
+      // Change mock video dimensions
+      mockVideoElement._videoWidth = 3840;
+      mockVideoElement._videoHeight = 2160;
+
+      const source = await VideoSource.create('test-video.mp4');
+      const size = source.getSize();
+
+      expect(size).toEqual({
+        width: 3840,
+        height: 2160,
+      });
     });
   });
 });

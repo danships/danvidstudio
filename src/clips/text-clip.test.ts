@@ -119,7 +119,7 @@ describe('TextClip', () => {
 
   describe('position and size', () => {
     it('should update position correctly', () => {
-      textClip.setPosition({ left: 30, top: 40 });
+      textClip.setPosition(30, 40);
       const pixiText = textClip._getContainer().children[0] as PixiText;
       expect(pixiText.position.x).toBe(30);
       expect(pixiText.position.y).toBe(40);
@@ -127,7 +127,7 @@ describe('TextClip', () => {
 
     it('should update size correctly', () => {
       const originalScale = (textClip._getContainer().children[0] as PixiText).scale.x;
-      textClip.setSize({ width: 300, height: 200 });
+      textClip.setSize(300, 200);
       const pixiText = textClip._getContainer().children[0] as PixiText;
       expect(pixiText.scale.x).not.toBe(originalScale);
       expect(pixiText.scale.y).not.toBe(originalScale);

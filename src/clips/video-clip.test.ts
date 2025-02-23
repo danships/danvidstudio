@@ -180,15 +180,13 @@ describe('VideoClip', () => {
 
   it('should set size', () => {
     videoClip = new VideoClip(defaultOptions);
-    const newSize = { width: 1280, height: 720 };
-    videoClip.setSize(newSize);
+    videoClip.setSize(1280, 720);
     expect(videoClip).toBeDefined();
   });
 
   it('should set position', () => {
     videoClip = new VideoClip(defaultOptions);
-    const newPosition = { left: 100, top: 100 };
-    videoClip.setPosition(newPosition);
+    videoClip.setPosition(100, 100);
     expect(videoClip).toBeDefined();
   });
 
@@ -254,6 +252,44 @@ describe('VideoClip', () => {
     videoClip['seekedListener']();
     // @ts-ignore - accessing private property for testing
     expect(videoClip['pendingSeek']).toBe(false);
+  });
+
+  it('should store and return the video source', () => {
+    videoClip = new VideoClip(defaultOptions);
+    expect(videoClip.getSource()).toBe(videoSource);
+    expect(videoClip.getSource()).toBe(defaultOptions.source);
+  });
+
+  it('should maintain source reference after operations', () => {
+    videoClip = new VideoClip(defaultOptions);
+
+    // Source should remain the same after various operations
+    videoClip.setCrop(0, 0, 960, 540);
+    expect(videoClip.getSource()).toBe(videoSource);
+
+    videoClip.removeCrop();
+    expect(videoClip.getSource()).toBe(videoSource);
+
+    videoClip.setSize(1280, 720);
+    expect(videoClip.getSource()).toBe(videoSource);
+
+    videoClip.setPosition(100, 100);
+    expect(videoClip.getSource()).toBe(videoSource);
+  });
+
+  it('should maintain source properties', () => {
+    const customSource = createMockVideoSource(15); // Create source with 15s duration
+    const options = {
+      ...defaultOptions,
+      source: customSource,
+    };
+
+    videoClip = new VideoClip(options);
+    const returnedSource = videoClip.getSource();
+
+    expect(returnedSource).toBe(customSource);
+    expect(returnedSource.duration).toBe(15);
+    expect(returnedSource.getVideoElement).toBeDefined();
   });
 
   describe('getType', () => {

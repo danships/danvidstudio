@@ -3,7 +3,6 @@ import type { VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip
 import { VisualClip } from '../base/visual-clip';
 import type { VideoSource } from '../sources/video-source';
 import { ClipType, type Crop } from '../types';
-import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
 export type VideoClipOptions = VisualClipOptionsWithoutOffsetDuration & {
@@ -29,6 +28,7 @@ export class VideoClip extends VisualClip {
   private pendingSeek: boolean = false;
   private speed: number = 1;
   private range: { start: number; end: number };
+  private source: VideoSource;
 
   private seekedListener = () => {
     if (this.pendingSeek) {
@@ -60,6 +60,7 @@ export class VideoClip extends VisualClip {
 
     this.speed = options.speed ?? 1;
     this.videoElement = options.source.getVideoElement();
+    this.source = options.source;
 
     // Initialize and validate source range
     this.range = {
@@ -139,6 +140,10 @@ export class VideoClip extends VisualClip {
     });
   }
 
+  public getSource(): VideoSource {
+    return this.source;
+  }
+
   public setCrop(x: number, y: number, width: number, height: number): this {
     if (!this.videoSource) {
       logger.warn('Cannot set crop: sprite or video source not loaded');
@@ -198,20 +203,20 @@ export class VideoClip extends VisualClip {
     return this;
   }
 
-  public setSize(size: Size) {
+  public setSize(width: number, height: number) {
     if (this.sprite) {
-      this.sprite.width = size.width;
-      this.sprite.height = size.height;
+      this.sprite.width = width;
+      this.sprite.height = height;
     }
-    super.setSize(size);
+    super.setSize(width, height);
     return this;
   }
 
-  public setPosition(position: Position) {
+  public setPosition(left: number, top: number) {
     if (this.sprite) {
-      this.sprite.position.set(position.left, position.top);
+      this.sprite.position.set(left, top);
     }
-    super.setPosition(position);
+    super.setPosition(left, top);
     return this;
   }
 

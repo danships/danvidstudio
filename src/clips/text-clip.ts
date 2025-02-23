@@ -1,7 +1,7 @@
-import type { Size, TextStyleFontWeight } from 'pixi.js';
+import type { TextStyleFontWeight } from 'pixi.js';
 import { Container, Text as PixiText, TextStyle } from 'pixi.js';
 import { VisualClip, type VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip';
-import { ClipType, type Position } from '../types';
+import { ClipType } from '../types';
 import { logger } from '../utils/logger';
 
 export type TextClipOptions = VisualClipOptionsWithoutOffsetDuration & {
@@ -167,17 +167,17 @@ export class TextClip extends VisualClip {
     return this;
   }
 
-  public setPosition(position: Position): this {
+  public setPosition(left: number, top: number): this {
     if (this.pixiText) {
-      this.pixiText.position.set(position.left, position.top);
+      this.pixiText.position.set(left, top);
     }
-    super.setPosition(position);
+    super.setPosition(left, top);
 
     return this;
   }
 
-  public setSize(size: Size): this {
-    super.setSize(size);
+  public setSize(width: number, height: number): this {
+    super.setSize(width, height);
     this.updateTextSize();
 
     return this;

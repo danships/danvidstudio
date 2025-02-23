@@ -455,7 +455,7 @@ async function initDemo() {
   playerContainer.append(status);
 
   // Subscribe to time updates
-  composition.onTimeUpdate((currentTime, totalDuration) => {
+  composition.on('time', (currentTime, totalDuration) => {
     const progress = (currentTime / totalDuration) * 100;
     progressFill.style.width = `${progress}%`;
     timeDisplay.textContent = `${Math.floor(currentTime)}s / ${Math.floor(totalDuration)}s`;

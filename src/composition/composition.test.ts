@@ -170,13 +170,13 @@ describe('Composition', () => {
   });
 
   describe('time update events', () => {
-    it('should notify listeners of time updates and handle removal correctly', async () => {
+    it('should notify time update listeners and handle removal correctly', async () => {
       await composition.waitForReady();
       const listener = vi.fn();
 
       composition.createScene({ duration: 5 }); // Add a scene to have non-zero duration
 
-      const id = composition.onTimeUpdate(listener);
+      const id = composition.on('time', listener);
       listener.mockClear(); // Clear initial calls
 
       // First seek should notify the listener
@@ -184,17 +184,110 @@ describe('Composition', () => {
       expect(listener).toHaveBeenLastCalledWith(2, 5);
 
       // Remove the listener
-      composition.offTimeUpdate(id);
+      composition.off('time', id);
       listener.mockClear();
 
       // Add a new listener to verify the first one was truly removed
       const newListener = vi.fn();
-      composition.onTimeUpdate(newListener);
+      composition.on('time', newListener);
 
       // Second seek should only notify the new listener
       composition.seek(3);
       expect(listener).not.toHaveBeenCalled();
       expect(newListener).toHaveBeenCalledWith(3, 5);
+    });
+
+    it('should handle composition update events correctly', async () => {
+      await composition.waitForReady();
+      const compositionListener = vi.fn();
+      const timeListener = vi.fn();
+
+      const compositionId = composition.on('composition', compositionListener);
+      const timeId = composition.on('time', timeListener);
+
+      // Trigger a composition update by creating a scene
+      composition.createScene({ duration: 5 });
+      expect(compositionListener).toHaveBeenCalled();
+
+      // Remove composition listener
+      composition.off('composition', compositionId);
+      compositionListener.mockClear();
+
+      // Create another scene, should not trigger removed listener
+      composition.createScene({ duration: 3 });
+      expect(compositionListener).not.toHaveBeenCalled();
+
+      // Time listener should still work
+      composition.seek(2);
+      expect(timeListener).toHaveBeenCalled();
+
+      // Clean up time listener
+      composition.off('time', timeId);
+      timeListener.mockClear();
+
+      composition.seek(3);
+      expect(timeListener).not.toHaveBeenCalled();
+    });
+
+    it('should handle size update events correctly', async () => {
+      await composition.waitForReady();
+      const sizeListener = vi.fn();
+
+      // Adding a size listener should immediately call it with current size
+      const sizeId = composition.on('size', sizeListener);
+      expect(sizeListener).toHaveBeenLastCalledWith(1920, 1080);
+      sizeListener.mockClear();
+
+      // Changing size should trigger the listener
+      composition.setSize(1280, 720);
+      expect(sizeListener).toHaveBeenLastCalledWith(1280, 720);
+
+      // Remove size listener
+      composition.off('size', sizeId);
+      sizeListener.mockClear();
+
+      // Size changes should not trigger removed listener
+      composition.setSize(800, 600);
+      expect(sizeListener).not.toHaveBeenCalled();
+    });
+
+    it('should handle multiple size listeners correctly', async () => {
+      await composition.waitForReady();
+      const listener1 = vi.fn();
+      const listener2 = vi.fn();
+
+      // Both listeners should be called immediately with current size
+      composition.on('size', listener1);
+      composition.on('size', listener2);
+      expect(listener1).toHaveBeenLastCalledWith(1920, 1080);
+      expect(listener2).toHaveBeenLastCalledWith(1920, 1080);
+      listener1.mockClear();
+      listener2.mockClear();
+
+      // Both listeners should receive size updates
+      composition.setSize(1280, 720);
+      expect(listener1).toHaveBeenLastCalledWith(1280, 720);
+      expect(listener2).toHaveBeenLastCalledWith(1280, 720);
+    });
+  });
+
+  describe('backward compatibility', () => {
+    it('should maintain backward compatibility with onTimeUpdate', async () => {
+      await composition.waitForReady();
+      const listener = vi.fn();
+      composition.createScene({ duration: 5 });
+
+      const id = composition.on('time', listener);
+      listener.mockClear();
+
+      composition.seek(2);
+      expect(listener).toHaveBeenLastCalledWith(2, 5);
+
+      composition.off('time', id);
+      listener.mockClear();
+
+      composition.seek(3);
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 

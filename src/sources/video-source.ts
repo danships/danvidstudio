@@ -1,8 +1,9 @@
 import { WithId } from '../base/with-id';
+import type { Size } from '../types';
 
 export class VideoSource extends WithId {
-  public readonly width: number;
-  public readonly height: number;
+  protected readonly width: number;
+  protected readonly height: number;
   public readonly duration: number;
   private videoElement: HTMLVideoElement;
 
@@ -79,5 +80,12 @@ export class VideoSource extends WithId {
     if (this.objectUrl) {
       URL.revokeObjectURL(this.objectUrl);
     }
+  }
+
+  public getSize(): Size {
+    return {
+      width: this.width,
+      height: this.height,
+    };
   }
 }

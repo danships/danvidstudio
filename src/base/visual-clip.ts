@@ -40,13 +40,13 @@ export abstract class VisualClip extends Clip {
   public getPosition() {
     return this.position;
   }
-  public setPosition(position: Position) {
-    this.position = position;
+  public setPosition(left: number, top: number) {
+    this.position = { left, top };
     this.triggerUpdated('Position changed');
   }
 
-  public setSize(size: Size) {
-    this.size = size;
+  public setSize(width: number, height: number) {
+    this.size = { width, height };
     this.triggerUpdated('Size changed');
   }
   public getSize() {

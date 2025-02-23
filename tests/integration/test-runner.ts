@@ -229,7 +229,7 @@ export class ManualTestRunner {
           return `${minutes}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
         };
 
-        composition.onTimeUpdate((currentTime, totalDuration) => {
+        composition.on('time', (currentTime, totalDuration) => {
           progress.innerHTML = `Progress: ${((currentTime / totalDuration) * 100).toFixed(2)}% (${formatTime(currentTime)} / ${formatTime(totalDuration)})`;
         });
 

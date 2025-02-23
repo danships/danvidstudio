@@ -2,7 +2,6 @@ import { Container, Rectangle, Sprite, Texture } from 'pixi.js';
 import { VisualClip, type VisualClipOptionsWithoutOffsetDuration } from '../base/visual-clip';
 import type { ImageSource } from '../sources/image-source';
 import { ClipType, type Crop } from '../types';
-import type { Position, Size } from '../types';
 import { logger } from '../utils/logger';
 
 export type ImageClipOptions = VisualClipOptionsWithoutOffsetDuration & {
@@ -17,6 +16,7 @@ export class ImageClip extends VisualClip {
   private texture: Texture | null = null;
   private sprite: Sprite;
   private cropRectangle: Rectangle | null = null;
+  private source: ImageSource;
 
   private createCroppedTexture(texture: Texture, rect: Rectangle): Texture {
     const croppedTexture = new Texture({
@@ -35,6 +35,7 @@ export class ImageClip extends VisualClip {
       size: options.size,
       track: options.track,
     });
+    this.source = options.source;
     this.texture = options.source._texture;
 
     if (options.crop) {
@@ -58,6 +59,10 @@ export class ImageClip extends VisualClip {
     }
   }
 
+  public getSource(): ImageSource {
+    return this.source;
+  }
+
   public setCrop(x: number, y: number, width: number, height: number): this {
     if (!this.texture) {
       logger.warn('Cannot set crop: texture or sprite not loaded');
@@ -67,7 +72,7 @@ export class ImageClip extends VisualClip {
     this.cropRectangle = new Rectangle(x, y, width, height);
     const croppedTexture = this.createCroppedTexture(this.texture, this.cropRectangle);
     this.sprite.texture = croppedTexture;
-    this.setSize({ width: croppedTexture.width, height: croppedTexture.height });
+    this.setSize(croppedTexture.width, croppedTexture.height);
     this.triggerUpdated('crop set');
     return this;
   }
@@ -80,23 +85,23 @@ export class ImageClip extends VisualClip {
 
     this.cropRectangle = null;
     this.sprite.texture = this.texture;
-    this.setSize({ width: this.texture.width, height: this.texture.height });
+    this.setSize(this.texture.width, this.texture.height);
     return this;
   }
 
-  public setSize(size: Size) {
-    this.size = size;
+  public setSize(width: number, height: number) {
+    this.size = { width, height };
     if (this.sprite) {
-      this.sprite.setSize(size.width, size.height);
+      this.sprite.setSize(width, height);
       this.triggerUpdated('Size changed');
     }
     return this;
   }
 
-  public setPosition(position: Position) {
-    this.position = position;
+  public setPosition(left: number, top: number) {
+    this.position = { left, top };
     if (this.sprite) {
-      this.sprite.position.set(position.left, position.top);
+      this.sprite.position.set(left, top);
       this.triggerUpdated('Position changed');
     }
     return this;

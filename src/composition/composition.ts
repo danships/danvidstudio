@@ -23,6 +23,17 @@ type CompositionOptions = {
   fps?: number;
 };
 
+export type CompositionEvents = 'composition' | 'time' | 'size';
+export type TimeUpdateListener = (currentTime: number, totalDuration: number) => void;
+export type CompositionUpdateListener = () => void;
+export type SizeUpdateListener = (width: number, height: number) => void;
+
+export type CompositionEventMap = {
+  time: TimeUpdateListener;
+  composition: CompositionUpdateListener;
+  size: SizeUpdateListener;
+};
+
 export class Composition {
   private app: Application;
   private scenes: Scene[] = [];
@@ -45,14 +56,32 @@ export class Composition {
     activeSceneIndex: null,
   };
 
-  private timeUpdateListeners: Map<string, (currentTime: number, totalDuration: number) => void> = new Map();
+  private compositionListeners: Map<string, CompositionUpdateListener> = new Map();
+  private timeUpdateListeners: Map<string, TimeUpdateListener> = new Map();
+  private sizeUpdateListeners: Map<string, SizeUpdateListener> = new Map();
+
   private onUpdateTime = (time: number) => {
     for (const listener of this.timeUpdateListeners.values()) {
       listener(time, this.duration);
     }
   };
+
+  private onCompositionUpdate = () => {
+    for (const listener of this.compositionListeners.values()) {
+      listener();
+    }
+  };
+
+  private onSizeUpdate = (width: number, height: number) => {
+    for (const listener of this.sizeUpdateListeners.values()) {
+      listener(width, height);
+    }
+  };
+
   // eslint-disable-next-line unicorn/consistent-function-scoping
   private onUpdateTimeThrottled = throttleCallback((time: number) => this.onUpdateTime(time), 100);
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  private onCompositionUpdateThrottled = throttleCallback(() => this.onCompositionUpdate(), 100);
 
   private exportManager!: ExportManager;
 
@@ -102,10 +131,11 @@ export class Composition {
     return this.size;
   }
 
-  public setSize(size: Size) {
-    this.size = size;
+  public setSize(width: number, height: number) {
+    this.size = { width, height };
     this.app.screen.width = this.size.width;
     this.app.screen.height = this.size.height;
+    this.onSizeUpdate(this.size.width, this.size.height);
   }
 
   public getFps() {
@@ -147,18 +177,27 @@ export class Composition {
           this.duration += newDuration;
           logger.debug('Duration updated to:', this.duration);
           this.updateTriggered();
+          this.onCompositionUpdateThrottled();
         },
         setContainer: (container) => {
           this.app.stage.addChild(container);
           this.updateTriggered();
+          this.onCompositionUpdateThrottled();
         },
       },
-      { ...options, updated: (reason?: string) => this.updateTriggered(reason) }
+      {
+        ...options,
+        updated: (reason?: string) => {
+          this.updateTriggered(reason);
+          this.onCompositionUpdateThrottled();
+        },
+      }
     );
     scene.setVisible(false);
     this.scenes.push(scene);
     logger.info('Added scene', scene.id);
     this.seek(0); // We seek so that the first scene is visible in the player
+    this.onCompositionUpdateThrottled();
     return scene;
   }
 
@@ -188,6 +227,7 @@ export class Composition {
 
     logger.info('Removed scene', scene.id);
     this.updateTriggered('Scene removed');
+    this.onCompositionUpdateThrottled();
   }
 
   public attachPlayer(element: HTMLDivElement) {
@@ -246,14 +286,51 @@ export class Composition {
     }
   }
 
-  public onTimeUpdate(listener: (currentTime: number, totalDuration: number) => void) {
+  public on<T extends CompositionEvents>(event: T, listener: CompositionEventMap[T]): string {
     const id = generateUUID();
-    this.timeUpdateListeners.set(id, listener);
+
+    switch (event) {
+      case 'time': {
+        this.timeUpdateListeners.set(id, listener as TimeUpdateListener);
+        break;
+      }
+      case 'composition': {
+        this.compositionListeners.set(id, listener as CompositionUpdateListener);
+
+        break;
+      }
+      case 'size': {
+        this.sizeUpdateListeners.set(id, listener as SizeUpdateListener);
+        // Immediately notify of current size
+        listener(this.size.width, this.size.height);
+
+        break;
+      }
+      // No default
+    }
+
     return id;
   }
 
-  public offTimeUpdate(id: string) {
-    this.timeUpdateListeners.delete(id);
+  public off(event: CompositionEvents, id: string): void {
+    switch (event) {
+      case 'time': {
+        this.timeUpdateListeners.delete(id);
+
+        break;
+      }
+      case 'composition': {
+        this.compositionListeners.delete(id);
+
+        break;
+      }
+      case 'size': {
+        this.sizeUpdateListeners.delete(id);
+
+        break;
+      }
+      // No default
+    }
   }
 
   private update = (time: Ticker) => {

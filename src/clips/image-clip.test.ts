@@ -102,14 +102,14 @@ describe('ImageClip', () => {
 
   describe('position and size', () => {
     it('should update position correctly', () => {
-      imageClip.setPosition({ left: 30, top: 40 });
+      imageClip.setPosition(30, 40);
       const sprite = imageClip._getContainer().children[0] as Sprite;
       expect(sprite.position.x).toBe(30);
       expect(sprite.position.y).toBe(40);
     });
 
     it('should update size correctly', () => {
-      imageClip.setSize({ width: 300, height: 200 });
+      imageClip.setSize(300, 200);
       const sprite = imageClip._getContainer().children[0] as Sprite;
       expect(sprite.width).toBe(300);
       expect(sprite.height).toBe(200);
@@ -171,6 +171,61 @@ describe('ImageClip', () => {
   describe('getType', () => {
     it('should return ClipType.IMAGE', () => {
       expect(imageClip.getType()).toBe(ClipType.IMAGE);
+    });
+  });
+
+  describe('source management', () => {
+    it('should store and return the image source', () => {
+      expect(imageClip.getSource()).toBe(mockImageSource);
+    });
+
+    it('should maintain source reference after operations', () => {
+      // Source should remain the same after various operations
+      imageClip.setCrop(20, 20, 60, 60);
+      expect(imageClip.getSource()).toBe(mockImageSource);
+
+      imageClip.removeCrop();
+      expect(imageClip.getSource()).toBe(mockImageSource);
+
+      imageClip.setSize(300, 200);
+      expect(imageClip.getSource()).toBe(mockImageSource);
+
+      imageClip.setPosition(30, 40);
+      expect(imageClip.getSource()).toBe(mockImageSource);
+    });
+
+    it('should maintain source properties', () => {
+      const customTexture = {
+        ...mockTexture,
+        width: 200,
+        height: 150,
+      } as unknown as Texture;
+
+      const customSource: ImageSource = {
+        _texture: customTexture,
+        width: 200,
+        height: 150,
+        destroy: vi.fn(),
+      };
+
+      const customClip = new ImageClip({
+        id: 'test-image',
+        offset: 0,
+        duration: 5,
+        source: customSource,
+      });
+
+      const returnedSource = customClip.getSource();
+      expect(returnedSource).toBe(customSource);
+      expect(returnedSource.width).toBe(200);
+      expect(returnedSource.height).toBe(150);
+      expect(returnedSource._texture).toBe(customTexture);
+    });
+
+    it('should not affect source when clip is destroyed', () => {
+      const destroySpy = vi.spyOn(mockImageSource, 'destroy');
+      imageClip.destroy();
+      expect(destroySpy).not.toHaveBeenCalled();
     });
   });
 });
