@@ -84,23 +84,6 @@
       #timeline-container {
         margin: 0;
       }
-      #pixi-tree-container {
-        font-family: monospace;
-        font-size: 12px;
-      }
-      .tree-node {
-        padding: 4px 0;
-        cursor: pointer;
-      }
-      .tree-node:hover {
-        background: #f0f0f0;
-      }
-      .tree-node-invisible {
-        opacity: 0.5;
-      }
-      .tree-node-indent {
-        margin-left: 20px;
-      }
       button {
         padding: 10px 20px;
         margin-right: 10px;
@@ -160,19 +143,7 @@
       </div>
     </div>
     <div id="test-controls-container" style="display: none"></div>
-    <div class="tabs-container">
-      <div class="tab-buttons">
-        <button class="tab-button active" data-tab="timeline">Timeline</button>
-        <button class="tab-button" data-tab="pixi-tree">Pixi.js Tree</button>
-      </div>
-      <div class="tab-content active" id="timeline-tab">
-        <div id="timeline-container"></div>
-      </div>
-      <div class="tab-content" id="pixi-tree-tab">
-        <div id="pixi-tree-container"></div>
-        <div class="tooltip"></div>
-      </div>
-    </div>
+    <div id="timeline-container"></div>
     <script type="module">
       import { runManualTests } from './tests.ts';
       runManualTests();

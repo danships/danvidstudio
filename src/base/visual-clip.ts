@@ -65,6 +65,10 @@ export abstract class VisualClip extends Clip {
     return this;
   }
 
+  public getDisplayOrder() {
+    return this._getContainer().parent.getChildIndex(this._getContainer());
+  }
+
   public abstract _getContainer(): Container;
   public abstract render(time: number): void;
 }

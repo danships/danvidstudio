@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { PixiTree } from './pixi-tree';
-import { Timeline } from './timeline';
+import { debug } from '../..';
 import type { Composition } from '../..';
 
 type RunParameters = {
@@ -28,8 +27,6 @@ export class ManualTestRunner {
   private container: HTMLElement;
   private timelineContainer: HTMLElement;
   private testCaseRunning: ManualTestCase | null = null;
-  private timeline: Timeline | null = null;
-  private pixiTree: PixiTree | null = null;
   private composition: Composition | null = null;
   private runAutomatic = false;
   private testConfirmationResult: boolean | null = null;
@@ -164,17 +161,7 @@ export class ManualTestRunner {
 
       // Create timeline if composition is returned
       if (composition) {
-        this.timeline = new Timeline(this.timelineContainer, composition);
-        this.timeline.render();
-
-        // Initialize Pixi.js tree
-        const pixiTreeContainer = document.querySelector('#pixi-tree-container');
-        const tooltip = document.querySelector('.tooltip');
-        if (pixiTreeContainer && tooltip) {
-          this.pixiTree = new PixiTree(pixiTreeContainer as HTMLElement, tooltip as HTMLElement, composition);
-          this.pixiTree.render();
-          this.pixiTree.startAutoUpdate(1000); // Update every second
-        }
+        debug.renderDebug(composition, this.timelineContainer);
 
         if (!this.runAutomatic) {
           // Add playback controls
@@ -311,9 +298,6 @@ export class ManualTestRunner {
     }
 
     this.alertedOnVerifyTest = true;
-
-    // Clean up
-    this.pixiTree?.stopAutoUpdate();
 
     if (this.runAutomatic) {
       console.log('Automatic run of test completed.');

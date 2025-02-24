@@ -31,5 +31,4 @@ export default defineConfig({
   server: {
     open: process.env['INTEGRATION_TEST'] === 'true' ? 'tests/integration/index.html' : '/src/demo/index.html',
   },
-  publicDir: 'public',
 });

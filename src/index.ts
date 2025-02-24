@@ -1,3 +1,5 @@
+import { renderDebug } from './debug';
+
 export { Composition } from './composition/composition';
 export type { CompositionEvents, CompositionUpdateListener, TimeUpdateListener } from './composition/composition';
 export { Scene, type SceneOptions } from './composition/scene';
@@ -12,3 +14,5 @@ export { WebCodecsEncoder } from './export/web-codecs-encoder';
 export { type Size, type Position, type Crop, ClipType } from './types';
 export { type Clip } from './base/clip';
 export { VisualClip } from './base/visual-clip';
+
+export const debug = { renderDebug };

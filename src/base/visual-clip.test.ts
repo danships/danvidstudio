@@ -105,4 +105,21 @@ describe('VisualClip', () => {
       expect(mockSetChildIndex).toHaveBeenCalledWith(clip._getContainer(), 2);
     });
   });
+
+  describe('getDisplayOrder()', () => {
+    it('should return the display order from parent container', () => {
+      // Setup
+      const mockParent = new Container();
+      const mockGetChildIndex = vi.fn().mockReturnValue(3);
+      mockParent.getChildIndex = mockGetChildIndex;
+      clip._getContainer().parent = mockParent;
+
+      // Execute
+      const displayOrder = clip.getDisplayOrder();
+
+      // Verify
+      expect(mockGetChildIndex).toHaveBeenCalledWith(clip._getContainer());
+      expect(displayOrder).toBe(3);
+    });
+  });
 });

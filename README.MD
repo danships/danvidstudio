@@ -4,9 +4,11 @@
 
 - [ ] Add badges (npm, license) to the README
 - [ ] Fill in the readme
+- [ ] In composition.off, don't require the type of event (requires reworking storing the listeners)
 
 ### Next priority
 
+- [ ] Optional duration for a scene, could also extend to the longest clip + offset
 - [ ] Add jsdoc comments to the code
   - [ ] Use https://www.webdoclabs.com/guides/index.html
 - [ ] Add codesandbox example(s)

@@ -1,12 +1,13 @@
-import type { Clip } from '../..';
-import type { Composition } from '../..';
-import type { Scene } from '../..';
-import type { Track } from '../..';
+import type { Clip } from '../base/clip';
+import type { Composition } from '../composition/composition';
+import type { Scene } from '../composition/scene';
+import type { Track } from '../composition/track';
 
 export class Timeline {
   private container: HTMLElement;
   private composition: Composition;
   private scale = 100; // pixels per second
+  private compositionListeners = new Set<string>();
 
   constructor(container: HTMLElement, composition: Composition) {
     this.container = container;
@@ -85,6 +86,9 @@ export class Timeline {
   }
 
   public render() {
+    // Clear the container first
+    this.container.innerHTML = '';
+
     const timelineContainer = document.createElement('div');
     timelineContainer.className = 'timeline';
 
@@ -181,6 +185,20 @@ export class Timeline {
     clipElement.style.width = `${clip.getDuration() * this.scale}px`;
 
     return clipElement;
+  }
+
+  public startAutoUpdate() {
+    const compositionId = this.composition.on('composition', () => {
+      this.render();
+    });
+    this.compositionListeners.add(compositionId);
+  }
+
+  public stopAutoUpdate() {
+    for (const id of this.compositionListeners) {
+      this.composition.off('composition', id);
+    }
+    this.compositionListeners.clear();
   }
 
   public updateScale(newScale: number) {
