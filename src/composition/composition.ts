@@ -476,4 +476,12 @@ export class Composition {
     this.updateTriggered();
     return this;
   }
+
+  public getCurrentTime() {
+    return this.playStatus.currentTime;
+  }
+
+  public isPlaying() {
+    return this.playStatus.isPlaying;
+  }
 }

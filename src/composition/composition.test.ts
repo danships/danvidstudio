@@ -150,9 +150,11 @@ describe('Composition', () => {
 
       composition.play();
       expect(composition['playStatus'].isPlaying).toBe(true);
+      expect(composition.isPlaying()).toBe(true);
 
       composition.pause();
       expect(composition['playStatus'].isPlaying).toBe(false);
+      expect(composition.isPlaying()).toBe(false);
     });
 
     it('should seek to correct time', async () => {
@@ -163,9 +165,50 @@ describe('Composition', () => {
       composition.seek(7); // Seek to 2nd scene
 
       expect(composition['playStatus'].currentTime).toBe(7);
+      expect(composition.getCurrentTime()).toBe(7);
       // We can't test container.visible directly as it's private, but we can verify the seek behavior
       // through the composition's state
       expect(composition['playStatus'].activeSceneIndex).toBe(1); // Second scene should be active
+    });
+
+    it('should track current time during playback', async () => {
+      await composition.waitForReady();
+      composition.createScene({ duration: 5 });
+
+      // Initial time should be 0
+      expect(composition.getCurrentTime()).toBe(0);
+
+      // Simulate playback by manually updating time
+      composition['playStatus'].currentTime = 2.5;
+      expect(composition.getCurrentTime()).toBe(2.5);
+
+      // Time should update after seeking
+      composition.seek(4);
+      expect(composition.getCurrentTime()).toBe(4);
+    });
+
+    it('should correctly report playing state', async () => {
+      await composition.waitForReady();
+      composition.createScene({ duration: 5 });
+
+      // Should be paused initially
+      expect(composition.isPlaying()).toBe(false);
+
+      // Should be playing after play() is called
+      composition.play();
+      expect(composition.isPlaying()).toBe(true);
+
+      // Should be paused after pause() is called
+      composition.pause();
+      expect(composition.isPlaying()).toBe(false);
+
+      // Should remain paused after seeking
+      composition.seek(2);
+      expect(composition.isPlaying()).toBe(false);
+
+      // Should be playing after play() is called again
+      composition.play();
+      expect(composition.isPlaying()).toBe(true);
     });
   });
 
