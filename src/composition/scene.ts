@@ -107,6 +107,10 @@ export class Scene extends WithId {
     return this.tracks;
   }
 
+  public getClips() {
+    return this.tracks.flatMap((track) => track.getClips());
+  }
+
   /**
    * Add a clip to the scene. Will create a new track automatically.
    * @param clip - The clip to add.

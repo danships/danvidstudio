@@ -33,6 +33,7 @@ vi.mock('./track', () => {
       destroy: vi.fn(),
       render: vi.fn(),
       addClip: vi.fn(),
+      getClips: vi.fn().mockReturnValue([]),
     })),
   };
 });
@@ -81,6 +82,32 @@ describe('Scene', () => {
       expect(track).toBeDefined();
       expect(Track).toHaveBeenCalled();
       expect(scene.tracks).toHaveLength(1);
+    });
+
+    it('should get all clips from all tracks', () => {
+      // Create mock clips
+      const mockClip1 = new TestClip({ offset: 0, duration: 5 });
+      const mockClip2 = new TestClip({ offset: 5, duration: 5 });
+
+      // Add two tracks
+      const track1 = scene.addTrack({});
+      const track2 = scene.addTrack({});
+
+      // Setup mock returns for getClips
+      vi.mocked(track1.getClips).mockReturnValue([mockClip1]);
+      vi.mocked(track2.getClips).mockReturnValue([mockClip2]);
+
+      // Get all clips
+      const clips = scene.getClips();
+
+      // Verify both tracks' getClips were called
+      expect(track1.getClips).toHaveBeenCalled();
+      expect(track2.getClips).toHaveBeenCalled();
+
+      // Verify we got all clips
+      expect(clips).toHaveLength(2);
+      expect(clips).toContain(mockClip1);
+      expect(clips).toContain(mockClip2);
     });
 
     it('should remove tracks correctly', () => {
