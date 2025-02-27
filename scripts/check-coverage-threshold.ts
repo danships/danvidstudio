@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const THRESHOLD_FILE = path.join(process.cwd(), '.coverage-threshold.json');
+const VITEST_CONFIG_FILE = path.join(process.cwd(), 'vitest.config.ts');
 
 interface CoverageData {
   total: number;
@@ -31,16 +31,59 @@ function readCurrentCoverage(): CoverageSummary {
   return JSON.parse(fs.readFileSync(coverageFile, 'utf8'));
 }
 
-function readStoredThresholds(): FileCoverage | null {
-  if (!fs.existsSync(THRESHOLD_FILE)) {
-    return null;
+function readVitestConfig(): string {
+  if (!fs.existsSync(VITEST_CONFIG_FILE)) {
+    console.error('vitest.config.ts not found.');
+    process.exit(1);
   }
 
-  return JSON.parse(fs.readFileSync(THRESHOLD_FILE, 'utf8'));
+  return fs.readFileSync(VITEST_CONFIG_FILE, 'utf8');
 }
 
-function writeNewThresholds(coverage: FileCoverage): void {
-  fs.writeFileSync(THRESHOLD_FILE, JSON.stringify(coverage, null, 2));
+function extractCurrentThresholds(configContent: string): FileCoverage {
+  const thresholdsMatch = configContent.match(/thresholds:\s*{([^}]*)}/);
+  if (!thresholdsMatch?.[1]) {
+    console.error('Could not find coverage thresholds in vitest.config.ts');
+    process.exit(1);
+  }
+
+  const thresholdsContent = thresholdsMatch[1];
+  const extractNumber = (metric: string): number => {
+    const match = thresholdsContent.match(new RegExp(`${metric}:\\s*([\\d.]+)`));
+    if (!match?.[1]) {
+      console.error(`Could not find ${metric} threshold in vitest.config.ts`);
+      process.exit(1);
+    }
+    return Number(match[1]);
+  };
+
+  return {
+    lines: { total: 0, covered: 0, skipped: 0, pct: extractNumber('lines') },
+    functions: { total: 0, covered: 0, skipped: 0, pct: extractNumber('functions') },
+    branches: { total: 0, covered: 0, skipped: 0, pct: extractNumber('branches') },
+    statements: { total: 0, covered: 0, skipped: 0, pct: extractNumber('statements') },
+  };
+}
+
+function updateVitestConfig(configContent: string, coverage: FileCoverage): void {
+  const newThresholds = {
+    lines: coverage.lines.pct,
+    functions: coverage.functions.pct,
+    branches: coverage.branches.pct,
+    statements: coverage.statements.pct,
+  };
+
+  const updatedContent = configContent.replace(
+    /thresholds:\s*{[^}]*}/,
+    `thresholds: {
+        lines: ${newThresholds.lines},
+        functions: ${newThresholds.functions},
+        branches: ${newThresholds.branches},
+        statements: ${newThresholds.statements},
+      }`
+  );
+
+  fs.writeFileSync(VITEST_CONFIG_FILE, updatedContent);
 }
 
 function checkCoverageAgainstThreshold(current: FileCoverage, threshold: FileCoverage): boolean {
@@ -68,22 +111,31 @@ function printCoverageSummary(coverage: FileCoverage): void {
 
 // Main execution
 const currentCoverage = readCurrentCoverage();
-const storedThresholds = readStoredThresholds();
+const vitestConfig = readVitestConfig();
+const storedThresholds = extractCurrentThresholds(vitestConfig);
 
 printCoverageSummary(currentCoverage.total);
-
-if (!storedThresholds) {
-  console.log('No previous thresholds found. Storing current coverage as baseline.');
-  writeNewThresholds(currentCoverage.total);
-  process.exit(0);
-}
 
 const passed = checkCoverageAgainstThreshold(currentCoverage.total, storedThresholds);
 
 if (passed) {
   console.log('Coverage check passed! ✅');
-  // Update thresholds if coverage improved
-  writeNewThresholds(currentCoverage.total);
+  // Update thresholds in vitest.config.ts if coverage improved
+  const metrics = ['lines', 'statements', 'functions', 'branches'] as const;
+  let improved = false;
+
+  for (const metric of metrics) {
+    if (currentCoverage.total[metric].pct > storedThresholds[metric].pct) {
+      improved = true;
+      break;
+    }
+  }
+
+  if (improved) {
+    console.log('Coverage improved! Updating thresholds in vitest.config.ts');
+    updateVitestConfig(vitestConfig, currentCoverage.total);
+  }
+
   process.exit(0);
 } else {
   console.error('Coverage check failed! Coverage must not decrease. ❌');

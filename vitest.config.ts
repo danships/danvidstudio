@@ -19,6 +19,12 @@ export default defineConfig({
         'scripts/**',
       ],
       reporter: ['text', 'json', 'html', 'json-summary'],
+      thresholds: {
+        lines: 85.58,
+        functions: 86.25,
+        branches: 84.49,
+        statements: 85.58,
+      },
     },
     include: ['src/**/*.test.ts'],
   },
