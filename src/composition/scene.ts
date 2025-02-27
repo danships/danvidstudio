@@ -34,7 +34,7 @@ export class Scene extends WithId {
     this.updateDuration = updateDuration;
     updateDuration(0, this.duration);
 
-    this.container = new Container();
+    this.container = new Container({ label: `Scene ${this.id}` });
     setContainer(this.container);
 
     this.updated = options.updated;

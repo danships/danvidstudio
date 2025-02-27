@@ -110,6 +110,7 @@ export class Composition {
         width: this.size.width,
         height: this.size.height,
       });
+      app.stage.label = 'Composition';
 
       // Configure FPS settings on the ticker
       app.ticker.maxFPS = this.fps;

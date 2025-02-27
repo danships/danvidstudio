@@ -31,6 +31,11 @@ describe('TextClip', () => {
       expect(pixiText.text).toBe('Test Text');
     });
 
+    it('should set the correct label on the container', () => {
+      const container = textClip._getContainer();
+      expect(container.label).toBe(`TextClip ${textClip.id}`);
+    });
+
     it('should create a text clip with custom position and size', () => {
       const customClip = new TextClip({
         id: 'test-text',

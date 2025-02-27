@@ -45,6 +45,11 @@ describe('ImageClip', () => {
       expect(container.children[0]).toBeInstanceOf(Sprite);
     });
 
+    it('should set the correct label on the container', () => {
+      const container = imageClip._getContainer();
+      expect(container.label).toBe(`ImageClip ${imageClip.id}`);
+    });
+
     it('should create an image clip with custom position and size', () => {
       const customClip = new ImageClip({
         id: 'test-image',

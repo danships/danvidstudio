@@ -23,10 +23,7 @@ export class PixiTree {
       .tree-node {
         padding: 4px 0;
         cursor: pointer;
-      }
-      .tree-node:hover {
-        background: #f0f0f0;
-      }
+      }      
       .tree-node-invisible {
         opacity: 0.5;
       }
@@ -104,6 +101,7 @@ export class PixiTree {
     const attributes: string[] = [];
 
     attributes.push(
+      `Label: ${object.label}`,
       `Position: (${object.x.toFixed(1)}, ${object.y.toFixed(1)})`,
       `Size: ${object.width.toFixed(1)} × ${object.height.toFixed(1)}`,
       `Alpha: ${object.alpha.toFixed(2)}`,
@@ -119,7 +117,7 @@ export class PixiTree {
     const node = document.createElement('div');
     node.className = `tree-node ${level > 0 ? 'tree-node-indent' : ''} ${object.visible ? '' : 'tree-node-invisible'}`;
 
-    const name = object.constructor.name;
+    const name = object.label ?? object.constructor.name;
     const visibility = object.visible ? '👁️' : '👁️‍🗨️';
     node.textContent = `${visibility} [${index}] ${name}`;
 

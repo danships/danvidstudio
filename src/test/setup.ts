@@ -31,6 +31,12 @@ vi.mock('pixi.js', () => {
   class Container {
     public visible: boolean = true;
     public children: any[] = [];
+    public label: string | undefined;
+
+    constructor(options?: { label?: string }) {
+      this.label = options?.label;
+    }
+
     public addChild = vi.fn((child) => {
       this.children.push(child);
       return this;

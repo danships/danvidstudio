@@ -18,7 +18,7 @@ export type VideoClipOptions = VisualClipOptionsWithoutOffsetDuration & {
 };
 
 export class VideoClip extends VisualClip {
-  private container: Container = new Container();
+  private container: Container;
   private texture: Texture | null = null;
   private sprite: Sprite;
   private cropRectangle: Rectangle | null = null;
@@ -58,6 +58,7 @@ export class VideoClip extends VisualClip {
       track: options.track,
     });
 
+    this.container = new Container({ label: `VideoClip ${this.id}` });
     this.speed = options.speed ?? 1;
     this.videoElement = options.source.getVideoElement();
     this.source = options.source;

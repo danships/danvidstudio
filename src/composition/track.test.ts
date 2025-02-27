@@ -83,6 +83,11 @@ describe('Track', () => {
       expect(mockParentContainer.children).toHaveLength(1);
       expect(mockParentContainer.children[0]).toBeInstanceOf(Container);
     });
+
+    it('should set the correct label on the container', () => {
+      const container = track['container'];
+      expect(container.label).toBe(`Track ${track.id}`);
+    });
   });
 
   describe('clip management', () => {

@@ -24,6 +24,8 @@ export class DebugRenderer {
         height: 100%;
         display: flex;
         flex-direction: column;
+        font-size: 14px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       }
       .debug-tabs {
         display: flex;
@@ -38,6 +40,7 @@ export class DebugRenderer {
         color: white;
         cursor: pointer;
         border-radius: 4px;
+        font-size: 13px;
       }
       .debug-tab.active {
         background: #555;
@@ -47,6 +50,7 @@ export class DebugRenderer {
         overflow: auto;
         padding: 10px;
         background: #2a2a2a;
+        font-size: 13px;
       }
       .debug-panel {
         display: none;

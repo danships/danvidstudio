@@ -68,6 +68,11 @@ describe('Scene', () => {
     it('should create and set up container', () => {
       expect(mockSetContainer).toHaveBeenCalledWith(expect.any(Container));
     });
+
+    it('should set the correct label on the container', () => {
+      const container = scene['container'];
+      expect(container.label).toBe(`Scene ${scene.id}`);
+    });
   });
 
   describe('track management', () => {

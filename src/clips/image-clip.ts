@@ -42,7 +42,7 @@ export class ImageClip extends VisualClip {
       this.cropRectangle = new Rectangle(options.crop.left, options.crop.top, options.crop.width, options.crop.height);
     }
 
-    this.container = new Container();
+    this.container = new Container({ label: `ImageClip ${this.id}` });
     this.sprite = new Sprite({
       label: this.id,
       texture: this.cropRectangle

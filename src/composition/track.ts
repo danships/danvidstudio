@@ -18,7 +18,7 @@ export class Track extends WithId {
 
   constructor(parent: Container | Scene, trackOptions: TrackOptions) {
     super(trackOptions.id);
-    this.container = new Container();
+    this.container = new Container({ label: `Track ${this.id}` });
     this.updated = trackOptions.updated;
     if (parent instanceof Container) {
       parent.addChild(this.container);

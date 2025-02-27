@@ -25,7 +25,7 @@ export type TextClipOptions = VisualClipOptionsWithoutOffsetDuration & {
 };
 
 export class TextClip extends VisualClip {
-  private container: Container = new Container();
+  private container: Container;
   private pixiText: PixiText | null = null;
   private textContent: string;
   private textStyle: Required<TextClipOptions>['style'];
@@ -40,6 +40,7 @@ export class TextClip extends VisualClip {
       track: options.track,
     });
 
+    this.container = new Container({ label: `TextClip ${this.id}` });
     this.textContent = options.text;
     this.textStyle = options.style || {};
 
