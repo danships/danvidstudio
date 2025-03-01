@@ -18,7 +18,7 @@ export const scaleDownVideoTest: ManualTestCase = {
       id: 'backdrop',
       source: backdropSource,
       offset: 0,
-      duration: 3.5,
+      duration: 3,
     });
     composition.addClipToComposition(backdropClip);
 

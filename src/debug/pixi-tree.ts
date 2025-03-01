@@ -101,13 +101,13 @@ export class PixiTree {
     const attributes: string[] = [];
 
     attributes.push(
-      `Label: ${object.label}`,
-      `Position: (${object.x.toFixed(1)}, ${object.y.toFixed(1)})`,
-      `Size: ${object.width.toFixed(1)} × ${object.height.toFixed(1)}`,
-      `Alpha: ${object.alpha.toFixed(2)}`,
-      `Visible: ${object.visible}`,
-      `Scale: (${object.scale.x.toFixed(2)}, ${object.scale.y.toFixed(2)})`,
-      `Rotation: ${((object.rotation * 180) / Math.PI).toFixed(1)}°`
+      `Label: ${object.label ?? 'unnamed'}`,
+      `Position: (${object.x?.toFixed(1) ?? '0'}, ${object.y?.toFixed(1) ?? '0'})`,
+      `Size: ${object.width?.toFixed(1) ?? 'auto'} × ${object.height?.toFixed(1) ?? 'auto'}`,
+      `Alpha: ${object.alpha?.toFixed(2) ?? '1.00'}`,
+      `Visible: ${object.visible ?? true}`,
+      `Scale: (${object.scale?.x?.toFixed(2) ?? '1.00'}, ${object.scale?.y?.toFixed(2) ?? '1.00'})`,
+      `Rotation: ${(((object.rotation ?? 0) * 180) / Math.PI).toFixed(1)}°`
     );
 
     return attributes.join(', ');

@@ -16,3 +16,4 @@ export { type Clip } from './base/clip';
 export { VisualClip } from './base/visual-clip';
 
 export const debug = { renderDebug };
+export { LogLevel } from './utils/logger';

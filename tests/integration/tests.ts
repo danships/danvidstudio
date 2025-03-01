@@ -7,6 +7,7 @@ declare global {
 }
 
 import { basicSceneTest } from './cases/basic-scene-test';
+import { compositionResizeTest } from './cases/composition-resize-test';
 import { countdownTest } from './cases/countdown-test';
 import { displayOrderTest } from './cases/display-order-test';
 import { fileOrBlobTest } from './cases/file-or-blob-test';
@@ -27,6 +28,7 @@ export async function runManualTests() {
   runner.addTest(removalTest);
   runner.addTest(fileOrBlobTest);
   runner.addTest(scaleDownVideoTest);
+  runner.addTest(compositionResizeTest);
 
   // read testId from the query search params
   const url = new URL(globalThis.location.href);

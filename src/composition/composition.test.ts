@@ -34,7 +34,11 @@ vi.mock('pixi.js', async () => {
     Application: vi.fn().mockImplementation(() => ({
       // eslint-disable-next-line unicorn/no-useless-undefined
       init: vi.fn().mockResolvedValue(undefined),
-      screen: { width: 1920, height: 1080 },
+      renderer: {
+        resize: vi.fn(),
+        width: 1920,
+        height: 1080,
+      },
       ticker: {
         maxFPS: 25,
         add: vi.fn().mockReturnThis(),
@@ -61,6 +65,7 @@ vi.mock('./track', () => {
       render: vi.fn(),
       addClip: vi.fn(),
       getClips: () => [],
+      setDisplayOrder: vi.fn(),
     })),
   };
 });
@@ -281,17 +286,19 @@ describe('Composition', () => {
       expect(sizeListener).toHaveBeenLastCalledWith(1920, 1080);
       sizeListener.mockClear();
 
-      // Changing size should trigger the listener
+      // Changing size should trigger the listener and resize the renderer
       composition.setSize(1280, 720);
       expect(sizeListener).toHaveBeenLastCalledWith(1280, 720);
+      expect(composition['app'].renderer.resize).toHaveBeenCalledWith(1280, 720);
 
       // Remove size listener
       composition.off('size', sizeId);
       sizeListener.mockClear();
 
-      // Size changes should not trigger removed listener
+      // Size changes should not trigger removed listener but should still resize renderer
       composition.setSize(800, 600);
       expect(sizeListener).not.toHaveBeenCalled();
+      expect(composition['app'].renderer.resize).toHaveBeenCalledWith(800, 600);
     });
 
     it('should handle multiple size listeners correctly', async () => {
@@ -307,10 +314,11 @@ describe('Composition', () => {
       listener1.mockClear();
       listener2.mockClear();
 
-      // Both listeners should receive size updates
+      // Both listeners should receive size updates and renderer should be resized
       composition.setSize(1280, 720);
       expect(listener1).toHaveBeenLastCalledWith(1280, 720);
       expect(listener2).toHaveBeenLastCalledWith(1280, 720);
+      expect(composition['app'].renderer.resize).toHaveBeenCalledWith(1280, 720);
     });
   });
 
@@ -356,11 +364,14 @@ describe('Composition', () => {
       const track = composition['compositionTrack'];
       expect(track).toBeDefined();
       expect(track?.addClip).toHaveBeenCalledWith(mockClip);
+      expect(track?.setDisplayOrder).toHaveBeenCalledWith(0);
 
       // Second call should use the existing track
       composition.addClipToComposition(mockClip);
       expect(composition['compositionTrack']).toBe(track);
       expect(track?.addClip).toHaveBeenCalledTimes(2);
+      // setDisplayOrder should only be called once during track creation
+      expect(track?.setDisplayOrder).toHaveBeenCalledTimes(1);
     });
   });
 

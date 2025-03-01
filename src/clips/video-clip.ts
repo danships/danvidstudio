@@ -216,6 +216,8 @@ export class VideoClip extends VisualClip {
   public setPosition(left: number, top: number) {
     if (this.sprite) {
       this.sprite.position.set(left, top);
+    } else {
+      logger.warn('Cannot set position: sprite not loaded');
     }
     super.setPosition(left, top);
     return this;

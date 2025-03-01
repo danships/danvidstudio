@@ -134,8 +134,8 @@ export class Composition {
 
   public setSize(width: number, height: number) {
     this.size = { width, height };
-    this.app.screen.width = this.size.width;
-    this.app.screen.height = this.size.height;
+
+    this.app.renderer.resize(width, height);
     this.onSizeUpdate(this.size.width, this.size.height);
   }
 
@@ -462,7 +462,11 @@ export class Composition {
    */
   public addClipToComposition(clip: Clip): this {
     if (!this.compositionTrack) {
-      this.compositionTrack = new Track(this.app.stage, { updated: () => this.updateTriggered() });
+      this.compositionTrack = new Track(this.app.stage, {
+        id: 'composition-track',
+        updated: () => this.updateTriggered(),
+      });
+      this.compositionTrack.setDisplayOrder(0);
     }
     this.compositionTrack.addClip(clip);
     return this;
