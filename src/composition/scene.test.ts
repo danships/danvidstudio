@@ -251,4 +251,72 @@ describe('Scene', () => {
       expect(mockSetSceneDisplayOrder).toHaveBeenCalledWith(scene, 2);
     });
   });
+
+  describe('rendering', () => {
+    it('should not render tracks when scene is not visible', () => {
+      const track1 = scene.createTrack({});
+      const track2 = scene.createTrack({});
+
+      scene.setVisible(false);
+      scene.render(0);
+
+      expect(track1.render).not.toHaveBeenCalled();
+      expect(track2.render).not.toHaveBeenCalled();
+    });
+
+    it('should render tracks when scene is visible', () => {
+      const track1 = scene.createTrack({});
+      const track2 = scene.createTrack({});
+
+      scene.setVisible(true);
+      scene.render(1.5);
+
+      expect(track1.render).toHaveBeenCalledWith(1.5);
+      expect(track2.render).toHaveBeenCalledWith(1.5);
+    });
+  });
+
+  describe('container management', () => {
+    it('should get container correctly', () => {
+      const container = scene._getContainer();
+      expect(container).toBe(scene['container']);
+    });
+
+    it('should set visibility correctly', () => {
+      scene.setVisible(false);
+      expect(scene['container'].visible).toBe(false);
+
+      scene.setVisible(true);
+      expect(scene['container'].visible).toBe(true);
+    });
+  });
+
+  describe('update callback', () => {
+    it('should set and use updated callback', () => {
+      const mockUpdated = vi.fn();
+      const mockSetSceneDisplayOrder = vi.fn();
+      const mockComposition = {
+        setSceneDisplayOrder: mockSetSceneDisplayOrder,
+      } as unknown as Composition;
+
+      scene = new Scene(
+        {
+          composition: mockComposition,
+          updateDuration: mockUpdateDuration,
+          setContainer: mockSetContainer,
+        },
+        {
+          duration: 5,
+        }
+      );
+
+      scene._setUpdated(mockUpdated);
+
+      const track = scene.createTrack({});
+      expect(mockUpdated).toHaveBeenCalledWith(`Track added ${track.id}`);
+
+      scene.setDisplayOrder(1);
+      expect(mockUpdated).toHaveBeenCalledWith('Display order set 1');
+    });
+  });
 });

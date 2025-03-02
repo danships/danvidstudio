@@ -88,6 +88,13 @@ describe('Track', () => {
       const container = track['container'];
       expect(container.label).toBe(`Track ${track.id}`);
     });
+
+    it('should initialize with Container parent', () => {
+      const parentContainer = new Container();
+      const containerTrack = new Track(parentContainer, {});
+      expect(parentContainer.children).toHaveLength(1);
+      expect(parentContainer.children[0]).toBe(containerTrack['container']);
+    });
   });
 
   describe('clip management', () => {
@@ -195,6 +202,27 @@ describe('Track', () => {
 
       track.setDisplayOrder(2);
       expect(mockSetChildIndex).toHaveBeenCalledWith(trackContainer, 2);
+    });
+  });
+
+  describe('update callback', () => {
+    it('should propagate updated callback to clips', () => {
+      const clip1 = createMockClip();
+      const clip2 = createMockClip();
+      track.addClip(clip1).addClip(clip2);
+
+      const newUpdated = vi.fn();
+      track._setUpdated(newUpdated);
+
+      expect(clip1._setUpdated).toHaveBeenCalledWith(newUpdated);
+      expect(clip2._setUpdated).toHaveBeenCalledWith(newUpdated);
+    });
+  });
+
+  describe('container management', () => {
+    it('should get container correctly', () => {
+      const container = track._getContainer();
+      expect(container).toBe(track['container']);
     });
   });
 });
