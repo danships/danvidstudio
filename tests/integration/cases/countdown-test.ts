@@ -15,7 +15,7 @@ export const countdownTest: ManualTestCase = {
 
     // Create a scene that will last 11 seconds (10 to 0)
     const scene = composition.createScene({ duration: 10.1 });
-    const track = scene.addTrack({});
+    const track = scene.createTrack({});
 
     const backdropImage = await ImageSource.create('/backdrop.jpg');
 

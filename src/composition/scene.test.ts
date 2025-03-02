@@ -2,7 +2,7 @@ import { Container } from 'pixi.js';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { Composition } from './composition';
 import { Scene } from './scene';
-import { Track } from './track';
+import { Track, type TrackOptions } from './track';
 import { Clip } from '../base/clip';
 import { ClipType } from '../types';
 
@@ -28,12 +28,14 @@ class TestClip extends Clip {
 // Mock Track class
 vi.mock('./track', () => {
   return {
-    Track: vi.fn().mockImplementation(() => ({
-      id: 'mock-track',
+    Track: vi.fn().mockImplementation((_parent: Container | Scene, options: TrackOptions) => ({
+      id: options.id || 'mock-track',
       destroy: vi.fn(),
       render: vi.fn(),
       addClip: vi.fn(),
       getClips: vi.fn().mockReturnValue([]),
+      _getContainer: vi.fn().mockReturnValue(new Container()),
+      remove: vi.fn(),
     })),
   };
 });
@@ -77,11 +79,26 @@ describe('Scene', () => {
   });
 
   describe('track management', () => {
-    it('should add tracks correctly', () => {
-      const track = scene.addTrack({});
+    it('should create tracks correctly', () => {
+      const track = scene.createTrack({});
       expect(track).toBeDefined();
       expect(Track).toHaveBeenCalled();
-      expect(scene.tracks).toHaveLength(1);
+      expect(scene.getTracks()).toHaveLength(1);
+    });
+
+    it('should add existing track correctly', () => {
+      // Create a mock track with a mock container
+      const mockContainer = new Container();
+      const mockTrack = {
+        id: 'mock-track-2',
+        _getContainer: vi.fn().mockReturnValue(mockContainer),
+      } as unknown as Track;
+
+      scene.addTrack(mockTrack);
+
+      expect(scene.getTracks()).toHaveLength(1);
+      expect(scene.getTracks()[0]).toBe(mockTrack);
+      expect(scene['container'].children).toContain(mockContainer);
     });
 
     it('should get all clips from all tracks', () => {
@@ -90,8 +107,8 @@ describe('Scene', () => {
       const mockClip2 = new TestClip({ offset: 5, duration: 5 });
 
       // Add two tracks
-      const track1 = scene.addTrack({});
-      const track2 = scene.addTrack({});
+      const track1 = scene.createTrack({});
+      const track2 = scene.createTrack({});
 
       // Setup mock returns for getClips
       vi.mocked(track1.getClips).mockReturnValue([mockClip1]);
@@ -112,27 +129,30 @@ describe('Scene', () => {
 
     it('should remove tracks correctly', () => {
       // Add some tracks
-      const track1 = scene.addTrack({});
-      const track2 = scene.addTrack({});
-      expect(scene.tracks).toHaveLength(2);
+      const track1 = scene.createTrack({ id: 'track1' });
+      const track2 = scene.createTrack({ id: 'track2' });
+      expect(scene.getTracks()).toHaveLength(2);
+
+      // Mock remove method
+      track1.remove = vi.fn();
 
       // Remove one track
       scene.removeTrack(track1);
-      expect(scene.tracks).toHaveLength(1);
-      expect(track1.destroy).toHaveBeenCalled();
-      expect(scene.tracks[0]).toBe(track2);
+      expect(scene.getTracks()).toHaveLength(1);
+      expect(track1.remove).toHaveBeenCalled();
+      expect(scene.getTracks()[0]).toBe(track2);
 
       // Try to remove non-existent track (should not throw)
       scene.removeTrack(track1);
-      expect(scene.tracks).toHaveLength(1);
+      expect(scene.getTracks()).toHaveLength(1);
     });
   });
 
   describe('cleanup', () => {
     it('should destroy all tracks and container', () => {
       // Add some tracks
-      const track1 = scene.addTrack({});
-      const track2 = scene.addTrack({});
+      const track1 = scene.createTrack({});
+      const track2 = scene.createTrack({});
 
       // Get container to spy on its destroy method
       const container = scene['container'];
@@ -144,7 +164,7 @@ describe('Scene', () => {
       // Verify all tracks were destroyed
       expect(track1.destroy).toHaveBeenCalled();
       expect(track2.destroy).toHaveBeenCalled();
-      expect(scene.tracks).toHaveLength(0);
+      expect(scene.getTracks()).toHaveLength(0);
 
       // Verify container was destroyed with children
       expect(containerDestroySpy).toHaveBeenCalledWith({ children: true });
@@ -168,8 +188,8 @@ describe('Scene', () => {
       );
 
       // Add some tracks to test they get removed
-      const track1 = scene.addTrack({});
-      const track2 = scene.addTrack({});
+      const track1 = scene.createTrack({});
+      const track2 = scene.createTrack({});
 
       // Mock track remove methods
       track1.remove = vi.fn();
@@ -195,10 +215,10 @@ describe('Scene', () => {
       const addedClip = scene.addClip(mockClip);
 
       // Verify a new track was created
-      expect(scene.tracks).toHaveLength(1);
+      expect(scene.getTracks()).toHaveLength(1);
 
       // Since we verified tracks.length is 1, we know this exists
-      const track = scene.tracks[0]!;
+      const track = scene.getTracks()[0]!;
       expect(track).toBeDefined();
 
       // Verify the clip was added to the track

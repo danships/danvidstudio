@@ -112,7 +112,7 @@ describe('Track', () => {
       // Remove one clip
       track.removeClip(clip1);
       expect(track['clips']).toHaveLength(1);
-      expect(clip1.destroy).toHaveBeenCalled();
+      expect(clip1.destroy).not.toHaveBeenCalled();
       expect(track['clips'][0]).toBe(clip2);
 
       // Try to remove non-existent clip (should not throw)
@@ -147,9 +147,7 @@ describe('Track', () => {
       // Destroy track
       track.destroy();
 
-      // Verify all clips were destroyed
-      expect(clip1.getDestroySpy()).toHaveBeenCalled();
-      expect(clip2.getDestroySpy()).toHaveBeenCalled();
+      // Verify clips are removed
       expect(track['clips']).toHaveLength(0);
 
       // Verify container was destroyed with children
@@ -178,12 +176,12 @@ describe('Track', () => {
 
       track.remove();
 
-      // Verify clips were removed
-      expect(clip1.getRemoveSpy()).toHaveBeenCalled();
-      expect(clip2.getRemoveSpy()).toHaveBeenCalled();
+      // Verify clips are not removed, and still attached to the track
+      expect(clip1.getRemoveSpy()).not.toHaveBeenCalled();
+      expect(clip2.getRemoveSpy()).not.toHaveBeenCalled();
 
       // Verify track was removed from scene
-      expect(mockRemoveTrack).toHaveBeenCalledWith(track);
+      expect(mockRemoveTrack).toHaveBeenCalledWith(track, false);
     });
   });
 

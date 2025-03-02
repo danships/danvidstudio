@@ -12,7 +12,7 @@ import { LogLevel } from '../utils/logger';
 
 function createSingleImageScene(composition: Composition, clipperImage: ImageSource): Scene {
   const scene = composition.createScene({ duration: 2 });
-  const track = scene.addTrack({});
+  const track = scene.createTrack({});
 
   const imageClip = new ImageClip({
     source: clipperImage,
@@ -26,7 +26,7 @@ function createSingleImageScene(composition: Composition, clipperImage: ImageSou
 
 function createSplitImageScene(composition: Composition, clipperImage: ImageSource): Scene {
   const splitScene = composition.createScene({ duration: 1 });
-  const splitTrack = splitScene.addTrack({});
+  const splitTrack = splitScene.createTrack({});
 
   const firstClip = new ImageClip({
     id: 'top-left',
@@ -50,7 +50,7 @@ function createSplitImageScene(composition: Composition, clipperImage: ImageSour
 
 function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSource): Scene {
   const autoSizeScene = composition.createScene({ duration: 1 });
-  const autoSizeAndCropTrack = autoSizeScene.addTrack({});
+  const autoSizeAndCropTrack = autoSizeScene.createTrack({});
 
   const autoSizeClip = new ImageClip({
     source: gridImage,
@@ -76,7 +76,7 @@ function createAutoSizeAndCropScene(composition: Composition, gridImage: ImageSo
 
 function createPlainVideoScene(composition: Composition, video: VideoSource): Scene {
   const plainVideoScene = composition.createScene({ duration: 11 });
-  const plainVideoTrack = plainVideoScene.addTrack({});
+  const plainVideoTrack = plainVideoScene.createTrack({});
 
   const plainVideoClip = new VideoClip({
     source: video,
@@ -95,7 +95,7 @@ function createPlainVideoScene(composition: Composition, video: VideoSource): Sc
 
 function createTextScene(composition: Composition): Scene {
   const textScene = composition.createScene({ duration: 5 });
-  const textTrack = textScene.addTrack({});
+  const textTrack = textScene.createTrack({});
 
   const titleClip = new TextClip({
     text: 'Hello, World!',

@@ -35,7 +35,7 @@ export const compositionResizeTest: ManualTestCase = {
     });
 
     const scene = composition.createScene({ duration: 3 });
-    const track = scene.addTrack({});
+    const track = scene.createTrack({});
     track.addClip(textClip);
 
     // Attach the player to the container

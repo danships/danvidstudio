@@ -16,8 +16,8 @@ export const displayOrderTest: ManualTestCase = {
 
     // Create first scene with backdrop on top
     const scene1 = composition.createScene({ duration: 1 });
-    const track1 = scene1.addTrack({});
-    const track2 = scene1.addTrack({});
+    const track1 = scene1.createTrack({});
+    const track2 = scene1.createTrack({});
 
     const backdropClip1 = new ImageClip({
       source: backdropSource,

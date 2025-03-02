@@ -13,7 +13,7 @@ export const speedUpTest: ManualTestCase = {
     });
 
     const scene = composition.createScene({ duration: 5.1 });
-    const track = scene.addTrack({});
+    const track = scene.createTrack({});
 
     const countdownSource = await VideoSource.create('/countdown.webm');
     const countdownClip = new VideoClip({

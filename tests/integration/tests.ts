@@ -12,6 +12,7 @@ import { countdownTest } from './cases/countdown-test';
 import { displayOrderTest } from './cases/display-order-test';
 import { fileOrBlobTest } from './cases/file-or-blob-test';
 import { removalTest } from './cases/removal-test';
+import { removeAndAddTrackTest } from './cases/remove-and-add-track';
 import { scaleDownVideoTest } from './cases/scale-down-video-test';
 import { simpleVideoTest } from './cases/simple-video-test';
 import { speedUpTest } from './cases/speed-up-test';
@@ -29,6 +30,7 @@ export async function runManualTests() {
   runner.addTest(fileOrBlobTest);
   runner.addTest(scaleDownVideoTest);
   runner.addTest(compositionResizeTest);
+  runner.addTest(removeAndAddTrackTest);
 
   // read testId from the query search params
   const url = new URL(globalThis.location.href);

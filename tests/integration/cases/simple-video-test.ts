@@ -20,7 +20,7 @@ export const simpleVideoTest: ManualTestCase = {
     });
 
     const scene = composition.createScene({ duration: 5 });
-    const track = scene.addTrack({});
+    const track = scene.createTrack({});
     track.addClip(videoClip);
 
     composition.attachPlayer(testContainer);

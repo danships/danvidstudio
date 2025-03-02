@@ -6,6 +6,7 @@ type RunParameters = {
   composition?: Composition;
   confirm: (text: string) => boolean;
   sleep: (duration: number) => Promise<void>;
+  openTab: (tab: 'pixitree' | 'timeline') => void;
 };
 
 export interface ManualTestCase {
@@ -239,6 +240,12 @@ export class ManualTestRunner {
         const runParameters: RunParameters = {
           confirm: (text: string) => this.confirm(text),
           sleep: (duration: number) => new Promise((resolve) => setTimeout(resolve, duration)),
+          openTab: (tab: 'pixitree' | 'timeline') => {
+            const tabButton = document.querySelector(`.debug-tab[data-tab="${tab}"]`) as HTMLButtonElement;
+            if (tabButton) {
+              tabButton.click();
+            }
+          },
         };
         if (this.composition) {
           runParameters.composition = this.composition;

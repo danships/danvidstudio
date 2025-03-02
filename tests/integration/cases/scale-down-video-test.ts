@@ -44,7 +44,7 @@ export const scaleDownVideoTest: ManualTestCase = {
     });
 
     const scene = composition.createScene({ duration: 3 });
-    const track = scene.addTrack({});
+    const track = scene.createTrack({});
     track.addClip(videoClip);
 
     composition.attachPlayer(testContainer);

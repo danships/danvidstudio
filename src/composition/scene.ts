@@ -4,6 +4,7 @@ import type { TrackOptions } from './track';
 import { Track } from './track';
 import type { Clip } from '../base/clip';
 import { WithId } from '../base/with-id';
+import { logger } from '../utils/logger';
 
 export type SceneOptions = {
   id?: string;
@@ -18,7 +19,7 @@ type CompositionDetails = {
 };
 
 export class Scene extends WithId {
-  public tracks: Track[] = [];
+  private tracks: Track[] = [];
 
   private duration: number;
   private updateDuration: (oldDuration: number, duration: number) => void;
@@ -55,26 +56,35 @@ export class Scene extends WithId {
     this.container.visible = visible;
   }
 
-  public addTrack(options: TrackOptions) {
+  public createTrack(options: TrackOptions) {
     const track = new Track(this, { ...options, updated: this.updated });
     this.tracks.push(track);
     this.updated?.(`Track added ${track.id}`);
     return track;
   }
 
-  public removeTrack(track: Track) {
-    const index = this.tracks.indexOf(track);
+  public addTrack(track: Track) {
+    this.tracks.push(track);
+    this.container.addChild(track._getContainer());
+    this.updated?.(`Track added ${track.id}`);
+    return track;
+  }
+
+  public removeTrack(track: Track, invokeTrackRemove = true) {
+    const index = this.tracks.findIndex((trackToCheck) => trackToCheck.id === track.id);
     if (index === -1) {
+      logger.error(`Track not found ${track.id}`);
       return;
     }
 
     // Remove from tracks array
     this.tracks.splice(index, 1);
 
-    // Clean up the track
-    track.destroy();
+    if (invokeTrackRemove) {
+      track.remove();
+    }
 
-    this.updated?.(`Track removed ${track.id}`);
+    this.updated?.(`Track removed ${track.id} (scene)`);
   }
 
   public setDuration(duration: number) {
@@ -117,7 +127,7 @@ export class Scene extends WithId {
    * @returns The clip that was added.
    */
   public addClip(clip: Clip) {
-    const track = this.addTrack({});
+    const track = this.createTrack({});
     track.addClip(clip);
     return clip;
   }

@@ -34,7 +34,7 @@ export const basicSceneTest: ManualTestCase = {
       position: { left: 40, top: 200 },
     });
     const textScene = composition.createScene({ duration: 1.5 });
-    const textTrack = textScene.addTrack({});
+    const textTrack = textScene.createTrack({});
     textTrack.addClip(textClip);
 
     const clipper = await ImageSource.create('/clipper.jpg');
@@ -47,7 +47,7 @@ export const basicSceneTest: ManualTestCase = {
       size: { width: 480, height: 460 },
     });
     const scene = composition.createScene({ duration: 2 });
-    const track = scene.addTrack({});
+    const track = scene.createTrack({});
 
     track.addClip(imageClip);
 

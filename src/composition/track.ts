@@ -55,9 +55,6 @@ export class Track extends WithId {
     // eslint-disable-next-line unicorn/prefer-dom-node-remove
     this.container.removeChild(clip._getContainer());
 
-    // Clean up the clip
-    clip.destroy();
-
     this.updated?.(concat('clip removed', clip.id));
   }
 
@@ -97,14 +94,14 @@ export class Track extends WithId {
   }
 
   public remove() {
-    // Remove all clips first
-    for (const clip of this.clips) {
-      clip.remove();
-    }
-
     this.container.removeFromParent();
 
     // Remove from scene if we have one
-    this.scene?.removeTrack(this);
+    this.scene?.removeTrack(this, false);
+    this.updated?.(`track removed ${this.id} (track)`);
+  }
+
+  public _getContainer() {
+    return this.container;
   }
 }

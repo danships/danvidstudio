@@ -13,7 +13,7 @@ export const removalTest: ManualTestCase = {
 
     // Create first scene with a video
     const scene1 = composition.createScene({ duration: 10 });
-    const track1 = scene1.addTrack({});
+    const track1 = scene1.createTrack({});
     const videoSource1 = await VideoSource.create(
       'https://diffusion-studio-public.s3.eu-central-1.amazonaws.com/videos/big_buck_bunny_1080p_30fps.mp4'
     );
@@ -27,7 +27,7 @@ export const removalTest: ManualTestCase = {
 
     // Create second scene with another video
     const scene2 = composition.createScene({ duration: 10 });
-    const track2 = scene2.addTrack({});
+    const track2 = scene2.createTrack({});
     const videoSource2 = await VideoSource.create('/countdown.webm');
     const videoClip2 = new VideoClip({
       source: videoSource2,
